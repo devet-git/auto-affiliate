@@ -41,7 +41,7 @@ class SearchResponse(BaseModel):
 
 
 @router.post("/search", response_model=SearchResponse)
-async def trigger_shopee_search(
+def trigger_shopee_search(
     body: SearchRequest,
     session: Session = Depends(get_session),
     _admin: dict = Depends(get_current_admin),
@@ -138,7 +138,7 @@ class ConvertResponse(BaseModel):
 
 
 @router.post("/convert", response_model=ConvertResponse)
-async def trigger_affiliate_conversion(
+def trigger_affiliate_conversion(
     session: Session = Depends(get_session),
     _admin: dict = Depends(get_current_admin),
 ) -> ConvertResponse:
