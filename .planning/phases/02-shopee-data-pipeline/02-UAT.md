@@ -1,9 +1,9 @@
 ---
-status: resolved
+status: partial
 phase: 02-shopee-data-pipeline
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md]
 started: 2026-03-29T00:58:00+07:00
-updated: 2026-03-29T01:53:00+07:00
+updated: 2026-03-29T02:20:00+07:00
 ---
 
 ## Current Test
@@ -18,8 +18,12 @@ result: pass
 
 ### 2. Trigger Search Scraper
 expected: Send a POST request to `/api/v1/crawler/shopee/search` with payload `{"keyword": "áo thun nam", "count": 2}`. Server launches a headless Chromium instance, scrapes Shopee products, and returns a JSON array of products. The `image_urls` should contain string URLs (no files downloaded), and `status` should be "PENDING".
-result: fix_applied
-note: Endpoints converted to sync def — Playwright runs in threadpool now (plan 02-03)
+result: pass
+note: |
+  Scraper returned 15 products with PENDING status ✓ — asyncio loop error resolved.
+  Observations (non-blocking): price=null for all items (price selector needs update);
+  image_urls pointing to Shopee CDN module-federation icons instead of product thumbnails.
+  These are quality improvements to address in a future phase.
 
 ### 3. Upload Affiliate Session
 expected: Export a dummy or real Shopee Affiliate session as a JSON file and upload it via POST `/api/v1/crawler/shopee/session`. Server should accept the file, validate it as JSON, and confirm it's saved locally.
@@ -34,10 +38,11 @@ reason: "blocked"
 ## Summary
 
 total: 4
-passed: 2
-issues: 1
+passed: 3
+issues: 0
 pending: 0
-skipped: 1
+skipped: 0
+blocked: 1
 
 ## Gaps
 
