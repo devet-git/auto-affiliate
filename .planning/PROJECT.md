@@ -23,7 +23,7 @@ Khả năng vận hành tự động (hands-free) quy mô lớn với độ tin 
 - [ ] **Giao diện Quản trị (Dashboard)**: Nơi admin thiết lập chiến dịch, theo dõi luồng công việc, quản lý tài khoản và xét duyệt (approve/reject) video.
 - [ ] **Automation Pipeline (Hàng đợi tác vụ)**: Hệ thống chạy đa luồng hỗ trợ Automation theo Chiến dịch (lấy gốc từ Shopee, render hàng loạt, auto post).
 - [ ] **Hàng đợi Duyệt thủ công (Approval Queue)**: Tính năng chặn lại các video trong luồng để người dùng kiểm tra trước khi hệ thống "bơm" lên TikTok.
-- [ ] **Render Video Hybrid**: Hệ thống tự động biên tập video cơ bản ở server (ghép ảnh, âm thanh TTS, ffmpeg) kết hợp với AI (LLM) để tinh chỉnh kịch bản (Prompt).
+- [ ] **Render Video Hybrid & 3rd-Party API**: Hệ thống tự động biên tập video cơ bản ở server kết hợp với AI (LLM), ĐỒNG THỜI hỗ trợ tích hợp 3rd-party AI Video Generation thông qua **Google Flow** (Google Cloud Video Intelligence / Vertex AI) để nâng cao chất lượng.
 - [ ] **Chiến lược Mạng xã hội Phân tầng (Multi-tier Posting)**: 
   - Tier 1: Nền tảng cấu hình sử dụng Official API (Graph API) cho các kênh chính.
   - Tier 2: Nền tảng mạng lưới tài khoản vệ tinh sử dụng Proxy kết hợp Browser Automation (Playwright) để đăng bài số lượng lớn lách luật.
@@ -32,7 +32,6 @@ Khả năng vận hành tự động (hands-free) quy mô lớn với độ tin 
 
 <!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
 
-- [Full 3rd-party AI Video Generation (HeyGen, Sora)] — Chi phí API cao, không tối ưu cho mô hình sản xuất video tiếp thị liên kết số lượng lớn mỗi ngày.
 - [Public Facing Website] — Nền tảng này chỉ dành cho Admin nội bộ sử dụng, không cần xây dựng giao diện public cho khách hàng.
 
 ## Context
