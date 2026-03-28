@@ -1,9 +1,9 @@
 ---
-status: partial
+status: complete
 phase: 02-shopee-data-pipeline
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md]
 started: 2026-03-29T00:58:00+07:00
-updated: 2026-03-29T02:20:00+07:00
+updated: 2026-03-29T02:43:00+07:00
 ---
 
 ## Current Test
@@ -20,10 +20,13 @@ result: pass
 expected: Send a POST request to `/api/v1/crawler/shopee/search` with payload `{"keyword": "áo thun nam", "count": 2}`. Server launches a headless Chromium instance, scrapes Shopee products, and returns a JSON array of products. The `image_urls` should contain string URLs (no files downloaded), and `status` should be "PENDING".
 result: pass
 note: |
-  Scraper returned 15 products with PENDING status ✓ — asyncio loop error resolved.
-  Observations (non-blocking): price=null for all items (price selector needs update);
-  image_urls pointing to Shopee CDN module-federation icons instead of product thumbnails.
-  These are quality improvements to address in a future phase.
+  All issues resolved in this verify-work session:
+  - async def → def fix (plan 02-03): Playwright now runs in threadpool, no asyncio clash.
+  - Cookie loading: supports Cookie-Editor array + Playwright native format; raises clear error on wrong format.
+  - Image URLs: fixed CDN domain filter (susercontent.com, not shopee.vn); excludes module-federation icons.
+  - Price extraction: switched from brittle CSS selectors to JS TreeWalker scanning for ₫/digit patterns.
+  - Session file conflict: SHOPEE_SEARCH_STATE_FILE (shopee_search_cookies.json) now separate from SHOPEE_CMS_STATE_FILE (shopee_cms_state.json).
+  Final test confirmed 15 products with title, price, image_urls, PENDING status.
 
 ### 3. Upload Affiliate Session
 expected: Export a dummy or real Shopee Affiliate session as a JSON file and upload it via POST `/api/v1/crawler/shopee/session`. Server should accept the file, validate it as JSON, and confirm it's saved locally.
