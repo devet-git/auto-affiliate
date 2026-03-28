@@ -7,7 +7,7 @@ Hành trình xây dựng hệ thống tự động hóa tiếp thị liên kết
 ## Phases
 
 - [x] **Phase 1: Foundation (Backend & Queue)** - Khởi tạo cấu trúc API, Database và luồng Message Broker. (completed 2026-03-28)
-- [ ] **Phase 2: Shopee Data Pipeline** - Tự động hóa lấy data sản phẩm và sinh link Affiliate.
+- [x] **Phase 2: Shopee Data Pipeline** - Tự động hóa lấy data sản phẩm và sinh link Affiliate. (completed 2026-03-28)
 - [ ] **Phase 3: 3rd-Party Video Generation** - Đẩy data qua API bên thứ ba (Google Flow/HeyGen) để sinh video dọc.
 - [ ] **Phase 4: Multi-tier Posting Options** - Xây dựng các Node đăng mạng xã hội (Official API, Browser Automation, Phone Appium).
 - [ ] **Phase 5: Command Center UI & Bot** - Hoàn thiện React Dashboard và hệ thống thông báo báo cáo Telegram.
@@ -91,7 +91,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Complete    | 2026-03-28 |
-| 2. Shopee Data | 0/2 | Not started | - |
+| 2. Shopee Data | 0/2 | Complete    | 2026-03-28 |
 | 3. Video Generation | 0/2 | Not started | - |
 | 4. Posting Options | 0/3 | Not started | - |
 | 5. Command Center | 0/3 | Not started | - |
