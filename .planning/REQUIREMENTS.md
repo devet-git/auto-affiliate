@@ -1,0 +1,79 @@
+# Requirements: Auto Affiliate Control Center
+
+**Defined:** 2026-03-28
+**Core Value:** Khả năng vận hành tự động quy mô lớn với độ tin cậy cao, kết hợp linh hoạt xử lý hàng loạt và kiểm duyệt thủ công (Approval Queue).
+
+## v1 Requirements
+
+### Architecture & Backend (CORE)
+
+- [ ] **CORE-01**: Hệ thống API chạy trên FastAPI với PostgreSQL database. Thiết kế dành riêng cho **1 người dùng duy nhất (Cá nhân/Admin)**.
+- [ ] **CORE-02**: Tích hợp luồng hàng đợi Celery/Redis để xử lý job background.
+- [ ] **CORE-03**: Màn hình đăng nhập bảo mật cho cá nhân tài khoản Admin (React Vite).
+- [ ] **CORE-04**: Database lưu trữ cấu trúc Campaign, Profile (TikTok/FB) và Job history.
+
+### Crawler & Data (CRWL)
+
+- [ ] **CRWL-01**: Tích hợp scraper/API lấy dữ liệu sản phẩm từ Shopee (ảnh, tên, giá).
+- [ ] **CRWL-02**: Tự động chuyển đổi shortlink sang link Affiliate Shopee.
+
+### Video Generation (REND)
+
+- [ ] **REND-01**: Tích hợp API Video Generation bên thứ 3 (ví dụ: Google Flow, HeyGen, v.v...) để sinh video từ mớ dữ liệu crawl được.
+- [ ] **REND-02**: Tự động lấy file Media trả về và tối ưu cục bộ cho định dạng dọc TikTok Reels/FB Shorts.
+
+### Social Posting & Phone Automation (POST)
+
+- [ ] **POST-01**: Tích hợp Official Network API (Tier 1) để đẩy bài tự động theo chuẩn.
+- [ ] **POST-02**: Tích hợp Browser automation (Playwright/Tier 2) để ẩn danh trình duyệt giả lập.
+- [ ] **POST-03**: **Điều khiển điện thoại thật (Tier 3)**: Tích hợp Appium / ADB để kết nối và điều khiển thao tác trực tiếp trên smartphone thật, vượt qua checkpoint cao nhất chống giả lập.
+- [ ] **POST-04**: Quản lý Proxy HTTPs độc lập theo profile thiết bị hoặc IP thay đổi trên Phone.
+
+### Notifications & Dashboard (UI)
+
+- [ ] **UI-01**: Giao diện Approval Queue - duyệt, xem trước video từ 3rd-party và chỉnh sửa lưới trước khi push.
+- [ ] **UI-02**: Quản lý tạo/xoá Campaign dữ liệu hàng loạt.
+- [ ] **UI-03**: **Chat Bot Integration**: Tích hợp Telegram / Discord / Messenger API bổ sung Webhook gởi Noti khẩn cấp khi: Video mới cần duyệt chờ chốt, Lỗi tài khoản rớt kết nối mạng điện thoại.
+
+## v2 Requirements
+
+### Analytics & Tracking (STAT)
+
+- **STAT-01**: Dashboard tổng hợp biến động click/doanh thu thực tế theo từng Campaign.
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Multi-tenant/Phân quyền phức tạp | Hệ thống đã chốt chỉ dùng cho **1 cá nhân (Personal use)**, tránh tốn thời gian xây quyền Agent/Role vô bổ. |
+| Local Server Video Rendering | Thay đổi chiến thuật -> Cấp quyền cho máy chủ chỉ cần cấu hình cực nhẹ và gửi data cho Bên Thứ 3 dựng video. Loại bỏ Module nặng ffmpeg/moviepy backend. |
+| Public Website | Admin nội bộ, không tin tức, không portal. |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CORE-01 | Phase 1 | Pending |
+| CORE-02 | Phase 1 | Pending |
+| CORE-03 | Phase 1 | Pending |
+| CORE-04 | Phase 1 | Pending |
+| CRWL-01 | Phase 2 | Pending |
+| CRWL-02 | Phase 2 | Pending |
+| REND-01 | Phase 3 | Pending |
+| REND-02 | Phase 3 | Pending |
+| POST-01 | Phase 4 | Pending |
+| POST-02 | Phase 4 | Pending |
+| POST-03 | Phase 4 | Pending |
+| POST-04 | Phase 4 | Pending |
+| UI-01 | Phase 5 | Pending |
+| UI-02 | Phase 5 | Pending |
+| UI-03 | Phase 5 | Pending |
+
+**Coverage:**
+- v1 requirements: 15 total
+- Mapped to phases: 15
+- Unmapped: 0 ✓
+
+---
+*Requirements defined: 2026-03-28*
+*Last updated: 2026-03-28 after user modifications*

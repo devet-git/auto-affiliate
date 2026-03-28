@@ -23,16 +23,20 @@ Khả năng vận hành tự động (hands-free) quy mô lớn với độ tin 
 - [ ] **Giao diện Quản trị (Dashboard)**: Nơi admin thiết lập chiến dịch, theo dõi luồng công việc, quản lý tài khoản và xét duyệt (approve/reject) video.
 - [ ] **Automation Pipeline (Hàng đợi tác vụ)**: Hệ thống chạy đa luồng hỗ trợ Automation theo Chiến dịch (lấy gốc từ Shopee, render hàng loạt, auto post).
 - [ ] **Hàng đợi Duyệt thủ công (Approval Queue)**: Tính năng chặn lại các video trong luồng để người dùng kiểm tra trước khi hệ thống "bơm" lên TikTok.
-- [ ] **Render Video Hybrid & 3rd-Party API**: Hệ thống tự động biên tập video cơ bản ở server kết hợp với AI (LLM), ĐỒNG THỜI hỗ trợ tích hợp 3rd-party AI Video Generation thông qua **Google Flow** (Google Cloud Video Intelligence / Vertex AI) để nâng cao chất lượng.
+- [ ] **Render Video qua 3rd-Party API**: Chuyển giao hoàn toàn việc tạo video cho bên thứ 3 (Google Flow, HeyGen, v.v...) để tối ưu chất lượng thay vì render trên server.
 - [ ] **Chiến lược Mạng xã hội Phân tầng (Multi-tier Posting)**: 
-  - Tier 1: Nền tảng cấu hình sử dụng Official API (Graph API) cho các kênh chính.
-  - Tier 2: Nền tảng mạng lưới tài khoản vệ tinh sử dụng Proxy kết hợp Browser Automation (Playwright) để đăng bài số lượng lớn lách luật.
+  - Tier 1: Nền tảng cấu hình sử dụng Official API (Graph API).
+  - Tier 2: Tự động hóa trình duyệt mô phỏng (Playwright/Proxy).
+  - Tier 3: **Phone Automation** - Kết nối thiết bị smartphone thật qua cáp/Wifi (ADB/Appium) để thao tác như người dùng mộc, lách luật quét máy ảo.
+- [ ] **Chat Bot Notifier**: Báo cáo trực tiếp tình trạng (Lỗi acc, Có video cần duyệt...) về tin nhắn Telegram/Discord/Messenger.
 
 ### Out of Scope
 
 <!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
 
-- [Public Facing Website] — Nền tảng này chỉ dành cho Admin nội bộ sử dụng, không cần xây dựng giao diện public cho khách hàng.
+- [Public Facing Website] — Nền tảng này chỉ phục vụ duy nhất bạn (Cá nhân/Admin) quản trị tài nguyên. Không đăng ký membership cho người ngoài.
+- [Phân quyền đa mức độ Multi-tenant] — Không cần thiết vì mục đích chỉ là cấp Personal.
+- [Local Server Video Rendering] — Đã thống nhất sử dụng bên thứ 3 thay vì máy chủ chịu tải render FFmpeg thủ công.
 
 ## Context
 
