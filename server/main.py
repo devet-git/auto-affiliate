@@ -4,12 +4,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.domains.admin.router import router as auth_router
+from app.domains.campaign import models as _campaign_models  # noqa: F401 — registers SQLModel metadata
 from app.domains.sys_worker.router import router as worker_router
+from app.core.database import create_db_and_tables
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: create DB tables (done in Plan 01-03)
+    # Startup: create DB tables
+    create_db_and_tables()
     yield
     # Shutdown: cleanup (if needed)
 
