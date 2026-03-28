@@ -211,23 +211,25 @@ def scrape_keyword(
                     }""")
 
                     # --- Image URLs (strings ONLY — D-02 compliance) ---
-                    # Filter criteria:
-                    #   - Must start with https://
-                    #   - Must be from Shopee's CDN domains (cf.shopee, down.*, *.oss-*)
-                    #   - Exclude module-federation icons (UI chrome, not product photos)
-                    image_urls: list[str] = []
-                    img_els = item.query_selector_all("img")
-                    for img in img_els:
-                        for attr in ("src", "data-src", "data-original", "data-lazy"):
-                            src = img.get_attribute(attr) or ""
-                            if (
-                                src.startswith("https://")
-                                and "shopee" in src
-                                and "modules-federation" not in src  # exclude UI icons
-                                and ".svg" not in src.lower()         # exclude vector icons
-                            ):
-                                image_urls.append(src)
-                                break
+                    # Product thumbnails: https://down-vn.img.susercontent.com/file/...
+                    # UI icons to exclude: deo.shopeemobile.com/shopee/modules-federation/...
+                    image_urls: list[str] = item.evaluate("""el => {
+                        const imgs = el.querySelectorAll('img');
+                        const results = [];
+                        for (const img of imgs) {
+                            const src = img.src || img.dataset.src || img.dataset.original || '';
+                            if (!src.startsWith('https://')) continue;
+                            if (src.includes('modules-federation')) continue;  // UI icons
+                            if (src.endsWith('.svg')) continue;                 // vector icons
+                            // Accept susercontent.com (product CDN) or shopee CDN
+                            const isProductCdn = src.includes('susercontent.com')
+                                              || (src.includes('shopee') && !src.includes('shopeemobile.com'));
+                            if (!isProductCdn) continue;
+                            // Only include images that actually loaded (naturalWidth > 50px)
+                            if (img.naturalWidth > 50) results.push(src);
+                        }
+                        return results;
+                    }""")
 
                     results.append(
                         {
