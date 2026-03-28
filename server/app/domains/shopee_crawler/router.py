@@ -100,10 +100,14 @@ async def upload_shopee_session(
     _admin: dict = Depends(get_current_admin),
 ) -> SessionUploadResponse:
     """
-    Upload a Playwright storage_state JSON to enable affiliate link generation.
+    Upload a Playwright storage_state JSON to enable affiliate link generation (/convert).
 
-    Export your logged-in Shopee Affiliate session using a browser extension
-    (e.g., Cookie Editor → Export as JSON), then POST the file here.
+    ⚠️  This is the **Shopee Affiliate CMS** session — NOT the search cookie file.
+    - Search cookies (for /search) → configure SHOPEE_SEARCH_STATE_FILE in .env
+    - CMS session (for /convert)  → upload here, saved to SHOPEE_CMS_STATE_FILE
+
+    Export your logged-in Shopee Affiliate portal session using Playwright's
+    context.storage_state(), then POST the file here.
     The server saves it to the path configured in SHOPEE_CMS_STATE_FILE (.env).
 
     Requires valid admin JWT.

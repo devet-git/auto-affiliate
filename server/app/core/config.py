@@ -18,10 +18,15 @@ class Settings(BaseSettings):
     # Redis / Celery
     REDIS_URL: str = "redis://localhost:6379/0"
 
+    # Shopee search session — Cookie-Editor JSON export of a logged-in Shopee account.
+    # Used by the scraper to bypass Shopee's login wall when searching products.
+    # Export: open shopee.vn in Chrome → Cookie-Editor extension → Export as JSON.
+    SHOPEE_SEARCH_STATE_FILE: str = "shopee_search_cookies.json"
+
     # Shopee Affiliate CMS — Playwright session state file (D-03)
-    # Admin exports logged-in session from browser, places at this path.
-    # Playwright uses it to skip login and go directly to custom_link page.
-    SHOPEE_CMS_STATE_FILE: str = "shopee_state.json"
+    # Admin exports logged-in Shopee Affiliate portal session, places at this path.
+    # Used by /convert to automate affiliate link generation without re-login.
+    SHOPEE_CMS_STATE_FILE: str = "shopee_cms_state.json"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

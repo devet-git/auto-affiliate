@@ -13,11 +13,9 @@ from typing import Any
 
 from playwright.sync_api import sync_playwright
 
-logger = logging.getLogger(__name__)
+from app.core.config import settings
 
-# Default search state file — place your logged-in Shopee cookies here.
-# Path is relative to the server/ working directory (where `fastapi dev` runs).
-_DEFAULT_SEARCH_STATE = Path(__file__).parent.parent.parent.parent / "shopee_state.json"
+logger = logging.getLogger(__name__)
 
 
 def _load_playwright_cookies(state_file: Path) -> list[dict]:
@@ -98,7 +96,11 @@ def scrape_keyword(
     results: list[dict[str, Any]] = []
     max_items = min(max_items, 100)
 
-    state_path = search_state_file or _DEFAULT_SEARCH_STATE
+    # Resolve state file: explicit arg → settings → error
+    state_path = search_state_file or Path(settings.SHOPEE_SEARCH_STATE_FILE)
+    if not state_path.is_absolute():
+        # Relative paths are resolved from the server/ directory
+        state_path = Path(__file__).parent.parent.parent.parent / state_path
     if not state_path.exists():
         raise FileNotFoundError(
             f"Shopee search session file not found: {state_path}. "
