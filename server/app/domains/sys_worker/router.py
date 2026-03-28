@@ -25,5 +25,11 @@ async def trigger_test_job(
     Trigger a test background job to verify Celery/Redis integration.
     Requires valid admin JWT token.
     """
-    task = test_worker_task.delay(body.msg)
-    return TestJobResponse(task_id=str(task.id), status="queued")
+    try:
+        task = test_worker_task.delay(body.msg)
+        return TestJobResponse(task_id=str(task.id), status="queued")
+    except Exception as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Queue unavailable — is Redis running? ({type(e).__name__})",
+        )
