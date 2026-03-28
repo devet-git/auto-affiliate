@@ -1,12 +1,12 @@
 # Phase 2: Shopee Data Pipeline - Context
 
-**Gathered:** 2026-03-28
+**Gathered:** 2026-03-28 (assumptions mode)
 **Status:** Ready for planning
 
 <domain>
 ## Phase Boundary
 
-Lõi Crawler tự động lấy data sản phẩm (ảnh, tên, giá) từ danh sách trending thông qua việc thiết lập Playwright Bot. Đồng thời thao tác tạo tracking link Affiliate để cấp bộ phôi tài nguyên cho quá trình lên video hàng loạt ở Phase 3. 
+Lõi Crawler tự động phân tích lấy tài nguyên sản phẩm (ảnh, tên, giá) và sinh tracking link Affiliate. Quá trình cào theo từ khóa/ngành hàng để cho ra danh sách sản phẩm tiềm năng.
 
 </domain>
 
@@ -14,16 +14,21 @@ Lõi Crawler tự động lấy data sản phẩm (ảnh, tên, giá) từ danh 
 ## Implementation Decisions
 
 ### Shopee Scraping Approach
-- **D-01:** Sử dụng `Playwright` mô phỏng hành vi tải trang (trình duyệt ẩn danh/có giao diện tùy chọn) để kéo nội dung sản phẩm. Chấp nhận tải phần cứng nhằm vượt cơ chế chống bot siêu việt của Cloudflare/Shopee.
+- **D-01:** Sử dụng Playwright mô phỏng trình duyệt để tránh bị Shopee block. Tái sử dụng Playwright (chuẩn bị sớm cho Tier 2 Automation ở Phase 4).
 
-### Data Storage (Lưu trữ Media)
-- **D-02:** Tải vĩnh viễn toàn bộ ảnh, text (và cả video gốc của list sản phẩm nếu có) về dồn đóng dưới ổ cứng hệ thống Local. Thao tác này giúp thiết lập kho lưu backup đề phòng link ảnh trỏ về Shopee thay đổi hoặc expired.
+### Data Storage (Lưu file Media)
+- **D-02:** Chỉ lưu URL gốc của file ảnh/video Shopee vào CSDL. Sẽ trực tiếp chuyển URL gốc sang cho API (3rd Party Video Gen ở Phase 3) tự động tải thay vì ôm về server nội bộ.
 
 ### Affiliate Link Creation
-- **D-03:** Sử dụng luồng `Playwright` tự động hóa: Truy cập và đăng nhập vào công cụ Custom Link của trang Shopee Affiliate Portal (thông qua cookie/session), tự dán url gốc vào box và sao chép mã short link được generate ra. Bỏ qua con đường đệ trình Shopee Open API khó khăn phức tạp.
+- **D-03:** "Tà đạo": Sử dụng Playwright (giả lập thao tác tay) truy cập vào Web Shopee Affiliate CMS, đăng nhập và tự động tạo/convert link hàng loạt thay vì dùng API Open (phức tạp / không được duyệt whitelist).
 
 ### Input Trigger
-- **D-04:** Chế độ Auto-Scaling đầu vào: Admin không cần cấp URL sản phẩm rác rưởi, chỉ cần nhập "Từ khoá" tìm kiếm hoặc tham số "Ngành hàng" (Category). Crawler sẽ scan trang liệt kê danh sách, tự động cào 100 sản phẩm có lượt mua cao/đứng top trending về nhồi kho dữ liệu.
+- **D-04:** Chạy bằng Từ khóa / Ngành hàng: Quét tự động top các sản phẩm (ví dụ: cào 100 sản phẩm top trending dựa vào keyword Admin nhập vào).
+
+### the agent's Discretion
+- Kiến trúc cụ thể cho script Playwright, cách chia page/context pool để tối ưu tốc độ cào hàng trăm items.
+- Schema bảng lưu trữ URL image.
+
 </decisions>
 
 <canonical_refs>
@@ -32,31 +37,38 @@ Lõi Crawler tự động lấy data sản phẩm (ảnh, tên, giá) từ danh 
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Project Scope
-- `.planning/PROJECT.md` — Định hướng tổng quan dự án Auto Affiliate. Quyết định D-04 cào hàng loạt cực kỳ phù hợp với định hướng Core Value tạo ra hàng ngàn video auto-scaling ở đây.
-- `.planning/REQUIREMENTS.md` — Yêu cầu CRWL-01 và CRWL-02 trong lộ trình làm Product Crawler API.
-- `.planning/phases/01-foundation-backend-queue/01-CONTEXT.md` — Áp dụng Module kiến trúc Domain-Driven cho Playwright Worker vào Folder Service riêng rẽ, không dính líu với API web controller chính.
+- `.planning/PROJECT.md` — Định nghĩa quy mô chiến lược đa tầng và mục đích hệ thống Automation.
+- `.planning/ROADMAP.md` — Luồng xử lý lấy dữ liệu Shopee -> Video AI.
+- `.planning/REQUIREMENTS.md` — CRWL-01 và CRWL-02 mô tả việc cào và sinh link Affiliate.
 
 </canonical_refs>
 
 <code_context>
 ## Existing Code Insights
 
+### Reusable Assets
+- `app/domains/sys_worker/` - Kiến trúc Worker chạy ngầm để lập lịch chạy job (giao cho Celery).
+- SQLModel database schemas (kế thừa từ Phase 1).
+
 ### Integration Points
-- Cơ chế Queue (Celery/Redis) đã được thiết lập ở Phase 1 là chìa khóa để triển khai cào top 100 sản phẩm ở chế độ nền (Background Worker) mà không gây Time-Out (504) trên trang web điều hành của Frontend FastAPI. Cần tạo 1 Worker Task `fetch_trending_items`.
+- API FastAPI sẽ cung cấp Endpoints tiếp nhận Keyword/Trigger.
+- Celery Task: Chạy Playwright scraping và update trạng thái database.
+
 </code_context>
 
 <specifics>
 ## Specific Ideas
 
-- Việc sử dụng cơ chế Browser Automation (Playwright) ở tận Phase 2 là tiền đề thiết yếu cho Phase 4 sau này (Bot Posting Tiktok). Cần xây dựng một **Browser Manager Service** (Quản lý Cookie Shopee, Quản lý Proxy) có tính tái sử dụng cao.
-- Cookie của bộ phận Crawler và Cookie của bộ phận sinh Link Affiliate có thể là 2 tập account/phiên tách biệt nhau, tránh bị Shopee quét hành vi đồng thời.
+- Vì bạn đã chọn cào bằng Playwright và convert link cũng bằng CMS của Shopee Affiliate thông qua giả lập Playwright, toàn bộ Phase rẽ hướng rất mạnh vào việc thiết kế một "Scraping Pool" chạy ổn định và login duy trì session tốt.
+- Không tải file media về server (ít I/O disk) giúp Worker nhẹ máy chủ.
 
 </specifics>
 
 <deferred>
 ## Deferred Ideas
 
-None
+- None — discussion stayed within phase scope
+
 </deferred>
 
 ---
