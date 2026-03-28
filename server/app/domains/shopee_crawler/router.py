@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+import json
+import os
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from sqlmodel import Session
 
+from app.core.config import settings
 from app.core.database import get_session
 from app.domains.admin.dependencies import get_current_admin
-from app.domains.shopee_crawler.service import search_and_save
+from app.domains.shopee_crawler.service import run_batch_affiliate_conversion, search_and_save
 
 router = APIRouter(prefix="/crawler/shopee", tags=["shopee-crawler"])
 
@@ -79,3 +84,101 @@ async def trigger_shopee_search(
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+# ---------- Session Management ----------
+
+
+class SessionUploadResponse(BaseModel):
+    saved_to: str
+    message: str
+
+
+@router.post("/session", response_model=SessionUploadResponse)
+async def upload_shopee_session(
+    file: UploadFile = File(...),
+    _admin: dict = Depends(get_current_admin),
+) -> SessionUploadResponse:
+    """
+    Upload a Playwright storage_state JSON to enable affiliate link generation.
+
+    Export your logged-in Shopee Affiliate session using a browser extension
+    (e.g., Cookie Editor → Export as JSON), then POST the file here.
+    The server saves it to the path configured in SHOPEE_CMS_STATE_FILE (.env).
+
+    Requires valid admin JWT.
+    """
+    content = await file.read()
+    try:
+        # Validate it's actual JSON before saving
+        parsed = json.loads(content)
+        if not isinstance(parsed, dict):
+            raise ValueError("Session file must be a JSON object")
+    except (json.JSONDecodeError, ValueError) as e:
+        raise HTTPException(status_code=422, detail=f"Invalid JSON: {e}")
+
+    state_path = Path(settings.SHOPEE_CMS_STATE_FILE)
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_bytes(content)
+
+    return SessionUploadResponse(
+        saved_to=str(state_path.resolve()),
+        message="Session saved. You can now trigger /convert to generate affiliate links.",
+    )
+
+
+# ---------- Affiliate Conversion ----------
+
+
+class ConvertResponse(BaseModel):
+    converted: int
+    failed: int
+    total: int
+    message: str
+
+
+@router.post("/convert", response_model=ConvertResponse)
+async def trigger_affiliate_conversion(
+    session: Session = Depends(get_session),
+    _admin: dict = Depends(get_current_admin),
+) -> ConvertResponse:
+    """
+    Convert a batch of PENDING products to affiliate tracking links (D-03).
+
+    Uses Playwright to automate the Shopee Affiliate CMS portal
+    with the pre-uploaded session file (via POST /session).
+    Processes up to 20 PENDING products per call.
+
+    - PENDING → CONVERTED  (affiliate_url populated)
+    - PENDING → FAILED     (conversion error / URL not returned)
+
+    Requires valid admin JWT.
+    """
+    state_path = Path(settings.SHOPEE_CMS_STATE_FILE)
+    if not state_path.exists():
+        raise HTTPException(
+            status_code=412,
+            detail=(
+                f"No session file found at '{settings.SHOPEE_CMS_STATE_FILE}'. "
+                "Upload your Shopee Affiliate session via POST /session first."
+            ),
+        )
+
+    try:
+        stats = run_batch_affiliate_conversion(session=session)
+        return ConvertResponse(
+            converted=stats["converted"],
+            failed=stats["failed"],
+            total=stats["total"],
+            message=(
+                f"Batch complete: {stats['converted']} converted, "
+                f"{stats['failed']} failed out of {stats['total']} processed."
+            ),
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=412, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
