@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+
 class Settings(BaseSettings):
     # Admin Authentication (personal use — no DB user table needed)
     ADMIN_USERNAME: str = "admin"
