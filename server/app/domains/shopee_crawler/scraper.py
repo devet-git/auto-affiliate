@@ -5,16 +5,81 @@ Uses sync_playwright inside Celery workers — avoids async event loop conflicts
 Decision D-01: Playwright chosen for anti-bot capability (reused in Phase 4 Tier-2).
 Decision D-02: Only stores image URLs — no local media downloads.
 """
+import json
 import logging
-import time
+import math
+from pathlib import Path
 from typing import Any
 
 from playwright.sync_api import sync_playwright
 
 logger = logging.getLogger(__name__)
 
+# Default search state file — place your logged-in Shopee cookies here.
+# Path is relative to the server/ working directory (where `fastapi dev` runs).
+_DEFAULT_SEARCH_STATE = Path(__file__).parent.parent.parent.parent / "shopee_state.json"
 
-def scrape_keyword(keyword: str, max_items: int = 50) -> list[dict[str, Any]]:
+
+def _load_playwright_cookies(state_file: Path) -> list[dict]:
+    """
+    Load cookies from a session file and return them in Playwright format.
+
+    Supports two input formats:
+    - Cookie-Editor (browser extension): JSON array with expirationDate, sameSite as
+      'no_restriction', hostOnly, storeId fields.
+    - Playwright native: JSON dict with {"cookies": [...], "origins": [...]} shape.
+
+    Raises ValueError if the file appears to contain non-cookie data (e.g., API response).
+    """
+    data = json.loads(state_file.read_text(encoding="utf-8"))
+
+    # --- Detect Playwright native format ---
+    if isinstance(data, dict):
+        if "cookies" in data and isinstance(data["cookies"], list):
+            return data["cookies"]  # already in Playwright format
+        # Looks like something else (e.g. API response body)
+        raise ValueError(
+            f"{state_file.name} is not a cookies file. "
+            "Expected a Cookie-Editor JSON array or Playwright storage_state dict. "
+            f"Got a dict with keys: {list(data.keys())[:5]}. "
+            "Re-export your Shopee session cookies from Cookie-Editor → Export → JSON."
+        )
+
+    if not isinstance(data, list):
+        raise ValueError(f"{state_file.name} must be a JSON array or object, got {type(data)}")
+
+    # --- Convert Cookie-Editor array format ---
+    same_site_map = {
+        "no_restriction": "None",
+        "lax": "Lax",
+        "strict": "Strict",
+        None: "None",
+    }
+
+    cookies = []
+    for c in data:
+        if not isinstance(c, dict) or "name" not in c or "value" not in c:
+            continue  # skip malformed entries
+        expiry = c.get("expirationDate")
+        cookies.append({
+            "name": c["name"],
+            "value": c["value"],
+            "domain": c["domain"],
+            "path": c.get("path", "/"),
+            "secure": c.get("secure", False),
+            "httpOnly": c.get("httpOnly", False),
+            "sameSite": same_site_map.get(c.get("sameSite"), "None"),
+            # Playwright expects an integer Unix timestamp; -1 means session cookie
+            "expires": int(math.floor(expiry)) if expiry else -1,
+        })
+    return cookies
+
+
+def scrape_keyword(
+    keyword: str,
+    max_items: int = 50,
+    search_state_file: Path | None = None,
+) -> list[dict[str, Any]]:
     """
     Scrape Shopee search results for a given keyword.
 
@@ -27,9 +92,19 @@ def scrape_keyword(keyword: str, max_items: int = 50) -> list[dict[str, Any]]:
     Args:
         keyword: Search term to query on shopee.vn
         max_items: Maximum number of products to return (default 50, capped at 100)
+        search_state_file: Path to Cookie-Editor JSON file for logged-in Shopee session.
+                           Defaults to shopee_state.json next to the server/ directory.
     """
     results: list[dict[str, Any]] = []
     max_items = min(max_items, 100)
+
+    state_path = search_state_file or _DEFAULT_SEARCH_STATE
+    if not state_path.exists():
+        raise FileNotFoundError(
+            f"Shopee search session file not found: {state_path}. "
+            "Export your logged-in Shopee cookies via Cookie-Editor → JSON, "
+            f"then save to: {state_path.resolve()}"
+        )
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
@@ -41,6 +116,9 @@ def scrape_keyword(keyword: str, max_items: int = 50) -> list[dict[str, Any]]:
                 "--disable-gpu",
             ],
         )
+        pw_cookies = _load_playwright_cookies(state_path)
+        logger.info(f"[Scraper] Loaded {len(pw_cookies)} cookies from {state_path.name}")
+
         context = browser.new_context(
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -53,6 +131,7 @@ def scrape_keyword(keyword: str, max_items: int = 50) -> list[dict[str, Any]]:
                 "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
             },
         )
+        context.add_cookies(pw_cookies)
 
         # Mask automation fingerprint
         context.add_init_script(
@@ -118,29 +197,35 @@ def scrape_keyword(keyword: str, max_items: int = 50) -> list[dict[str, Any]]:
                             break
 
                     # --- Price ---
-                    price_selectors = [
-                        ".shopee-price__current",
-                        "[class*='price--current']",
-                        "[class*='discountedPrice']",
-                        "[class*='price'] span",
-                    ]
-                    price: str | None = None
-                    for psel in price_selectors:
-                        el = item.query_selector(psel)
-                        if el:
-                            raw = el.inner_text().strip()
-                            if raw:
-                                price = raw
-                                break
+                    # Shopee uses hashed class names that change with deployments.
+                    # Use JS to find text matching Vietnamese price patterns (₫ or digit·dot).
+                    price: str | None = item.evaluate("""el => {
+                        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+                        const priceRe = /[₫đ]|\\d{1,3}(?:\\.\\d{3})+/;
+                        let node;
+                        while ((node = walker.nextNode())) {
+                            const t = node.textContent.trim();
+                            if (t && priceRe.test(t) && t.length < 30) return t;
+                        }
+                        return null;
+                    }""")
 
                     # --- Image URLs (strings ONLY — D-02 compliance) ---
+                    # Filter criteria:
+                    #   - Must start with https://
+                    #   - Must be from Shopee's CDN domains (cf.shopee, down.*, *.oss-*)
+                    #   - Exclude module-federation icons (UI chrome, not product photos)
                     image_urls: list[str] = []
                     img_els = item.query_selector_all("img")
                     for img in img_els:
-                        for attr in ("src", "data-src", "data-original"):
+                        for attr in ("src", "data-src", "data-original", "data-lazy"):
                             src = img.get_attribute(attr) or ""
-                            # Filter out placeholder/base64 images
-                            if src.startswith("http") and "shopee" in src:
+                            if (
+                                src.startswith("https://")
+                                and "shopee" in src
+                                and "modules-federation" not in src  # exclude UI icons
+                                and ".svg" not in src.lower()         # exclude vector icons
+                            ):
                                 image_urls.append(src)
                                 break
 
