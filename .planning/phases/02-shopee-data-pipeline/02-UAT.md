@@ -1,9 +1,9 @@
 ---
-status: partial
+status: resolved
 phase: 02-shopee-data-pipeline
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md]
 started: 2026-03-29T00:58:00+07:00
-updated: 2026-03-29T01:46:00+07:00
+updated: 2026-03-29T01:53:00+07:00
 ---
 
 ## Current Test
@@ -18,9 +18,8 @@ result: pass
 
 ### 2. Trigger Search Scraper
 expected: Send a POST request to `/api/v1/crawler/shopee/search` with payload `{"keyword": "áo thun nam", "count": 2}`. Server launches a headless Chromium instance, scrapes Shopee products, and returns a JSON array of products. The `image_urls` should contain string URLs (no files downloaded), and `status` should be "PENDING".
-result: issue
-reported: "\"detail\": \"Unexpected error: It looks like you are using Playwright Sync API inside the asyncio loop.\\nPlease use the Async API instead.\""
-severity: blocker
+result: fix_applied
+note: Endpoints converted to sync def — Playwright runs in threadpool now (plan 02-03)
 
 ### 3. Upload Affiliate Session
 expected: Export a dummy or real Shopee Affiliate session as a JSON file and upload it via POST `/api/v1/crawler/shopee/session`. Server should accept the file, validate it as JSON, and confirm it's saved locally.
@@ -43,9 +42,8 @@ skipped: 1
 ## Gaps
 
 - truth: "Send a POST request to `/api/v1/crawler/shopee/search` with payload `{\"keyword\": \"áo thun nam\", \"count\": 2}`. Server launches a headless Chromium instance, scrapes Shopee products, and returns a JSON array of products. The `image_urls` should contain string URLs (no files downloaded), and `status` should be \"PENDING\"."
-  status: failed
-  reason: "User reported: \"detail\": \"Unexpected error: It looks like you are using Playwright Sync API inside the asyncio loop.\\nPlease use the Async API instead.\""
-  severity: blocker
+  status: resolved
+  reason: "Endpoints converted to `def` in plan 02-03 — sync_playwright now runs in FastAPI threadpool without asyncio loop collision."
   test: 2
   artifacts: []
   missing: []
