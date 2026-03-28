@@ -39,8 +39,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Module Shopee Scraper
-- [ ] 02-02: Module Affiliate Link Generator
+- [x] 02-01: Module Shopee Scraper
+- [x] 02-02: Module Affiliate Link Generator
 
 ### Phase 3: 3rd-Party Video Generation
 **Goal**: Chuyển đổi dữ liệu và gửi yêu cầu tạo video tự động qua API nền tảng AI.
