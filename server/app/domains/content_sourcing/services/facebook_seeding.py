@@ -78,7 +78,8 @@ def comment_on_post(
     driver = get_driver(udid, app_type)
     try:
         # Xây dựng lòng tin bằng cách lướt Feed ngẫu nhiên trước khi tìm bài
-        warmup_news_feed(driver, duration_sec=30)
+        # NOTE: Warmup = 5s khi test. Tăng lên 30-60s khi chạy production thật.
+        warmup_news_feed(driver, duration_sec=5)
     
         wait = WebDriverWait(driver, timeout)
 

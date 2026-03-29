@@ -12,8 +12,10 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlmodel import Session, select
 
 from app.core.config import settings
+from app.core.database import get_session
 from app.domains.admin.dependencies import get_current_admin
 
 router = APIRouter(prefix="/sourcing", tags=["content-sourcing"])
@@ -152,6 +154,7 @@ def deduplicate_video(
 @router.post("/seed/comment", response_model=SeedCommentResponse, summary="Trigger comment FB qua điện thoại thật")
 def trigger_fb_comment(
     body: SeedCommentRequest,
+    session: Session = Depends(get_session),
     _admin: dict = Depends(get_current_admin),
 ) -> SeedCommentResponse:
     """
@@ -167,12 +170,25 @@ def trigger_fb_comment(
     Dùng `task_id` trả về để kiểm tra trạng thái qua Celery/Flower.
     """
     from app.domains.sys_worker.seeding_tasks import exec_fb_comment
+    from app.domains.devices.models import Device
 
-    udid = body.udid or settings.APPIUM_DEVICE_UDID
+    # Resolve UDID: body override > first online device in DB
+    udid = body.udid
+    if not udid:
+        online_device = session.exec(
+            select(Device).where(Device.status == "online")
+        ).first()
+        if online_device:
+            udid = online_device.udid
+
     if not udid:
         raise HTTPException(
             status_code=412,
-            detail="Không có UDID thiết bị. Truyền 'udid' trong body hoặc set APPIUM_DEVICE_UDID trong .env",
+            detail=(
+                "Chưa có thiết bị nào đang Online. "
+                "Vào trang Thiết Bị → thêm thiết bị và bật trạng thái Online, "
+                "hoặc truyền 'udid' trực tiếp trong body."
+            ),
         )
 
     try:
