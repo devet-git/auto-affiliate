@@ -42,7 +42,7 @@ Khả năng vận hành tự động (hands-free) quy mô lớn với độ tin 
 
 - **Workflow Đặc thù**: Yêu cầu thao tác rất nhiều với đa luồng (task queue), giả lập trình duyệt, xử lý media (mp4, mkv) và quản lý state phức tạp.
 - **Tính ổn định của Account**: Các nền tảng liên tục thay đổi thuật toán chống bot, do đó việc chia Tier (API & Playwright) là bắt buộc.
-- **Bối cảnh hiện tại**: Đã có mã nguồn backend cơ bản trước đây (FastAPI, auth), cần chuẩn hóa và mở rộng sang hệ thống đa vi xử lý (celery/bull) và ghép nối luồng với Frontend mới.
+- **Bối cảnh hiện tại**: Phase 4 (Real-Device Social Farm) complete - Hệ thống đã hỗ trợ Appium dual-app switching, humanized swiping feed loops và đẩy Reel thông qua ADB Media Injector.
 
 ## Constraints
 
