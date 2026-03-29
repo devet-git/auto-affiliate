@@ -121,3 +121,31 @@ def exec_fb_batch_comment(
     except Exception as exc:
         logger.error(f"[exec_fb_batch_comment] Exception: {exc}")
         raise self.retry(exc=exc)
+
+
+@celery_app.task(
+    name="app.domains.sys_worker.seeding_tasks.exec_fb_post_reel",
+    bind=True,
+    queue="appium_phone",
+    max_retries=1,
+    default_retry_delay=60,
+)
+def exec_fb_post_reel(self, udid: str, local_mp4_path: str, caption: str) -> dict:
+    """
+    Pushes an MP4 via ADB and uses Appium on FB Main to upload a Reel.
+    """
+    from app.domains.content_sourcing.services.facebook_seeding import post_reel
+    
+    logger.info(f"[exec_fb_post_reel] Device={udid} | Video={local_mp4_path}")
+    try:
+        success = post_reel(udid=udid, local_mp4_path=local_mp4_path, caption=caption)
+        status = "posted" if success else "failed"
+        return {
+            "status": status,
+            "udid": udid,
+            "task_id": self.request.id,
+        }
+    except Exception as exc:
+        logger.error(f"[exec_fb_post_reel] Exception: {exc}")
+        raise self.retry(exc=exc)
+

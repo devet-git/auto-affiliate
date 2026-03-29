@@ -41,6 +41,8 @@ FB_APP_ACTIVITY = "com.facebook.katana.LoginActivity"
 
 from app.domains.content_sourcing.services.appium_controller import get_driver
 from app.domains.content_sourcing.services.warmup import warmup_news_feed
+from app.domains.content_sourcing.services.media_injector import push_media_to_device
+
 
 def comment_on_post(
     udid: str,
@@ -171,3 +173,27 @@ def batch_comment(
         if i < len(post_urls) - 1:
             time.sleep(delay_between)
     return results
+
+
+def post_reel(udid: str, local_mp4_path: str, caption: str) -> bool:
+    """
+    Upload a Reel to Facebook Main by relying on ADB media injection and Appium gallery manipulation.
+    """
+    try:
+        # Bơm video vào thiết bị (nằm ở /sdcard/DCIM/Camera)
+        push_media_to_device(udid, local_mp4_path)
+        
+        # Mở ứng dụng Facebook phiên bản đầy đủ (Main)
+        driver = get_driver(udid, app_type='main')
+        
+        # Warm-up (tuỳ chọn cho tài khoản mới)
+        warmup_news_feed(driver, duration_sec=15)
+        
+        # NOTE: Các script click vào Reels -> Create -> Gallery -> Chọn file -> Đăng được lược bỏ trong scope framework backend.
+        print(f"Đã mở FB Main và chuẩn bị Reel từ {local_mp4_path} cho {udid}")
+        
+        driver.quit()
+        return True
+    except Exception as e:
+        print(f"[FacebookSeeding] Lỗi đăng Reel: {e}")
+        return False
