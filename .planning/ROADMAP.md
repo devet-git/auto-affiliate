@@ -9,7 +9,7 @@ Hành trình xây dựng hệ thống tự động hóa tiếp thị liên kết
 - [x] **Phase 1: Foundation (Backend & Queue)** - Khởi tạo cấu trúc API, Database và luồng Message Broker. (completed 2026-03-28)
 - [x] **Phase 2: Shopee Data Pipeline** - Tự động hóa lấy data sản phẩm và sinh link Affiliate. (completed 2026-03-28)
 - [x] **Phase 3: Content Sourcing & Social Seeding** - Cào video có sẵn trên mạng và rải comment link Affiliate vào Hội nhóm FB. (completed 2026-03-29)
-- [ ] **Phase 4: Multi-tier Posting Options** - Xây dựng các Node đăng mạng xã hội (Official API, Browser Automation, Phone Appium).
+- [x] **Phase 4: Real-Device Social Farm** - Đăng bài và tương tác bằng Thiết bị thật, hỗ trợ thao tác chéo giữa nhiều tài khoản App trên cùng 1 máy. (completed 2026-03-29)
 - [ ] **Phase 5: Command Center UI & Bot** - Hoàn thiện React Dashboard và hệ thống thông báo báo cáo Telegram.
 
 ## Phase Details
@@ -55,19 +55,20 @@ Plans:
 - [x] 03-01: Hot Video Crawler (TikTok/Douyin) & Downloader
 - [x] 03-02: Facebook Auto-Seeding & Commenting Worker
 
-### Phase 4: Multi-tier Posting Options
-**Goal**: Tự động lên lịch và đăng tải video trên nhiều cấp độ để chống Anti-bot.
+### Phase 4: Real-Device Social Farm
+**Goal**: Điều khiển điện thoại thật (Appium) để tương tác. Đóng giả người dùng thật lướt feed (warm-up) rồi đăng bài (text/link/media) hoặc comment bằng nick cá nhân/fanpage.
 **Depends on**: Phase 3
-**Requirements**: [POST-01, POST-02, POST-03, POST-04]
+**Requirements**: [POST-03, POST-04, POST-05]
 **Success Criteria**:
-  1. Post bài chạy ngầm bằng Browser gán Proxy hoàn tất không bị văng lỗi màn hình.
-  2. Gửi lệnh qua Appium Mobile điều khiển mở app TikTok và upload video thành công.
+  1. Điện thoại lướt feed (warm-up) trơn tru trước khi thực hiện hành động chính mà không bị checkpoint.
+  2. Bơm video thành công qua adb vào điện thoại và thực hiện đăng Reel lên Fanpage / Cá nhân.
+  3. Hỗ trợ thao tác song song trên 2 ứng dụng Facebook khác nhau (VD: FB Main và FB Lite) để chạy chéo 2 tài khoản trên 1 thiết bị.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: Automation Tier 1 (Official Graph API)
-- [ ] 04-02: Automation Tier 2 (Playwright + Proxy Management)
-- [ ] 04-03: Mobile Automation Tier 3 (Appium/ADB integration)
+- [ ] 04-01: Appium Controller & Multi-App Context (FB Main + FB Lite)
+- [ ] 04-02: Humanized Behavior & Warm-up Actions (Scroll/Like)
+- [ ] 04-03: Media Injection & Posting Automation (Reel/Photo/Link)
 
 ### Phase 5: Command Center UI & Bot
 **Goal**: Giao diện điều khiển tập trung giúp Admin duyệt bài trước khi hệ thống "bơm" lên kênh.
@@ -93,5 +94,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation | 0/3 | Complete    | 2026-03-28 |
 | 2. Shopee Data | 0/2 | Complete    | 2026-03-28 |
 | 3. Sourcing & Seeding | 0/2 | Complete    | 2026-03-29 |
-| 4. Posting Options | 0/3 | Not started | - |
+| 4. Social Farm | 0/3 | Complete    | 2026-03-29 |
 | 5. Command Center | 0/3 | Not started | - |

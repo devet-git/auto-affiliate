@@ -22,12 +22,11 @@
 - [ ] **SEED-01**: Cào video ngắn hot (TikTok/Douyin/Reels/Shorts) liên quan đến keyword sản phẩm. Tự động tải file MP4 về server.
 - [ ] **SEED-02**: Tự động tìm kiếm các bài viết/Hội nhóm Facebook liên quan đến sản phẩm và comment rải link Affiliate Shopee.
 
-### Social Posting & Phone Automation (POST)
+### Social Farm & Device Automation (POST)
 
-- [ ] **POST-01**: Tích hợp Official Network API (Tier 1) để đẩy bài tự động theo chuẩn.
-- [ ] **POST-02**: Tích hợp Browser automation (Playwright/Tier 2) để ẩn danh trình duyệt giả lập.
-- [ ] **POST-03**: **Điều khiển điện thoại thật (Tier 3)**: Tích hợp Appium / ADB để kết nối và điều khiển thao tác trực tiếp trên smartphone thật, vượt qua checkpoint cao nhất chống giả lập.
-- [ ] **POST-04**: Quản lý Proxy HTTPs độc lập theo profile thiết bị hoặc IP thay đổi trên Phone.
+- [ ] **POST-03**: Điều khiển thiết bị thật qua Appium/ADB mô phỏng thao tác người dùng tự nhiên (Lướt NewsFeed, còm/like mồi - warm-up).
+- [ ] **POST-04**: Quản lý thao tác 2 App cùng lúc trên 1 máy (VD: FB Main & FB Lite) để chạy chéo 2 tài khoản.
+- [ ] **POST-05**: Bơm file Media (Ảnh/Video Reel) bằng cơ chế ADB đẩy thẳng vào điện thoại và tự động đăng Reels từ Gallery.
 
 ### Notifications & Dashboard (UI)
 
@@ -61,10 +60,9 @@
 | CRWL-02 | Phase 2 | Pending |
 | SEED-01 | Phase 3 | Pending |
 | SEED-02 | Phase 3 | Pending |
-| POST-01 | Phase 4 | Pending |
-| POST-02 | Phase 4 | Pending |
 | POST-03 | Phase 4 | Pending |
 | POST-04 | Phase 4 | Pending |
+| POST-05 | Phase 4 | Pending |
 | UI-01 | Phase 5 | Pending |
 | UI-02 | Phase 5 | Pending |
 | UI-03 | Phase 5 | Pending |
