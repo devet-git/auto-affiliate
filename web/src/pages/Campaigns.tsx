@@ -209,23 +209,23 @@ export default function Campaigns() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Campaigns</h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Quản lý và điều khiển chiến dịch affiliate + seeding.
           </p>
         </div>
         <Button
           onClick={() => setIsCreateOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
         >
           <Plus className="w-4 h-4" /> New Campaign
         </Button>
       </div>
 
       {/* Campaign Table */}
-      <div className="border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/50">
+      <div className="border border-border rounded-lg overflow-hidden bg-card/50 backdrop-blur-sm">
         <Table>
           <TableHeader>
-            <TableRow className="border-zinc-800 hover:bg-transparent">
+            <TableRow className="border-border hover:bg-transparent">
               <TableHead>Tên Campaign</TableHead>
               <TableHead>Trạng Thái</TableHead>
               <TableHead>Automation</TableHead>
@@ -248,8 +248,8 @@ export default function Campaigns() {
               </TableRow>
             ) : (
               campaigns.map((c) => (
-                <TableRow key={c.id} className="border-zinc-800">
-                  <TableCell className="font-medium text-blue-400">{c.name}</TableCell>
+                <TableRow key={c.id} className="border-border">
+                  <TableCell className="font-medium text-primary">{c.name}</TableCell>
                   <TableCell>
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_BADGE[c.status] ?? STATUS_BADGE.draft}`}>
                       {c.status}
@@ -301,7 +301,7 @@ export default function Campaigns() {
                         onClick={() => openEdit(c)}
                         title="Cấu hình campaign"
                       >
-                        <Settings className="w-4 h-4 text-zinc-400" />
+                        <Settings className="w-4 h-4 text-muted-foreground" />
                       </Button>
 
                       {/* Delete */}
@@ -324,7 +324,7 @@ export default function Campaigns() {
 
       {/* ── Create Dialog ── */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-50 max-w-sm">
+        <DialogContent className="bg-background border-border text-foreground max-w-sm rounded-[var(--radius)]">
           <DialogHeader>
             <DialogTitle>Tạo Campaign Mới</DialogTitle>
           </DialogHeader>
@@ -336,7 +336,7 @@ export default function Campaigns() {
                 onChange={(e) => setNewCampaignName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                 placeholder="VD: Áo thun nam Q3/2024"
-                className="bg-zinc-950 border-zinc-700"
+                className="bg-background border-input"
                 autoFocus
               />
             </div>
@@ -348,7 +348,7 @@ export default function Campaigns() {
             <Button
               onClick={handleCreate}
               disabled={creating || !newCampaignName.trim()}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Tạo
@@ -359,7 +359,7 @@ export default function Campaigns() {
 
       {/* ── Edit / Config Dialog ── */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-50 max-w-xl">
+        <DialogContent className="bg-background border-border text-foreground max-w-xl rounded-[var(--radius)]">
           <DialogHeader>
             <DialogTitle>
               {editingCampaign?.name}
@@ -367,15 +367,15 @@ export default function Campaigns() {
           </DialogHeader>
 
           {/* Tabs */}
-          <div className="flex border-b border-zinc-800 -mx-6 px-6 mb-4">
+          <div className="flex border-b border-border -mx-6 px-6 mb-4">
             {(['info', 'automation'] as TabKey[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`pb-2 px-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab
-                    ? 'border-blue-500 text-blue-400'
-                    : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {tab === 'info' ? '📋 Thông Tin' : '🤖 Automation'}

@@ -22,15 +22,15 @@ export default function DashboardLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col">
-      <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-50">
+    <div className="min-h-screen bg-background bg-gradient-to-br from-background to-muted/20 text-foreground flex flex-col">
+      <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
         <div className="px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-lg">
-            <LayoutDashboard className="text-blue-500" /> 
+            <LayoutDashboard className="text-primary" /> 
             <span className="hidden sm:inline">Auto Affiliate</span> Command Center
           </div>
           <nav className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-zinc-400 hover:text-red-400 hover:bg-zinc-900 pointer">
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-destructive hover:bg-muted pointer">
               <LogOut className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Sign Out</span>
             </Button>
@@ -39,15 +39,15 @@ export default function DashboardLayout() {
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        <aside className="w-64 border-r border-zinc-800 bg-zinc-950/50 p-4 hidden md:block">
-          <nav className="space-y-1">
+        <aside className="w-64 border-r border-border bg-background/50 p-4 hidden md:block">
+          <nav className="space-y-2">
             {navItems.map((item) => {
               const isActive = location.pathname.startsWith(item.path);
               return (
                 <Link key={item.path} to={item.path}>
                   <Button
                     variant={isActive ? 'secondary' : 'ghost'}
-                    className={`w-full justify-start ${isActive ? 'bg-blue-600/10 text-blue-400 hover:bg-blue-600/20' : 'text-zinc-400 hover:text-zinc-50'}`}
+                    className={`w-full justify-start ${isActive ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'text-muted-foreground hover:text-foreground'}`}
                   >
                     {item.icon}
                     {item.label}

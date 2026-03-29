@@ -59,7 +59,7 @@ export default function ApprovalQueue() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Approval Queue</h1>
-          <p className="text-zinc-400">Review and approve AI-generated posts.</p>
+          <p className="text-muted-foreground">Review and approve AI-generated posts.</p>
         </div>
         <div className="flex gap-2">
           <Button variant={viewMode === 'grid' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewMode('grid')}>
@@ -74,16 +74,16 @@ export default function ApprovalQueue() {
       {loading ? (
         <div className="text-center py-10 text-zinc-500">Loading...</div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-10 border border-zinc-800 rounded-lg bg-zinc-900/50">
+        <div className="text-center py-10 border border-border rounded-lg bg-card/50 backdrop-blur-sm">
           <Check className="w-12 h-12 mx-auto text-green-500 mb-4" />
           <h2 className="text-xl font-bold">All caught up!</h2>
-          <p className="text-zinc-400">No pending posts in the queue.</p>
+          <p className="text-muted-foreground">No pending posts in the queue.</p>
         </div>
       ) : viewMode === 'table' ? (
-        <div className="border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/50">
+        <div className="border border-border rounded-lg overflow-hidden bg-card/50 backdrop-blur-sm">
           <Table>
             <TableHeader>
-              <TableRow className="border-zinc-800 hover:bg-transparent">
+              <TableRow className="border-border hover:bg-transparent">
                 <TableHead className="w-24">Media</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Caption</TableHead>
@@ -92,15 +92,15 @@ export default function ApprovalQueue() {
             </TableHeader>
             <TableBody>
               {posts.map((post) => (
-                <TableRow key={post.id} className="border-zinc-800">
+                <TableRow key={post.id} className="border-border">
                   <TableCell>
                     <img src={post.thumbnail} alt={post.title} className="w-16 h-16 object-cover rounded" />
                   </TableCell>
                   <TableCell className="font-medium">{post.title}</TableCell>
-                  <TableCell className="max-w-xs truncate text-zinc-400">{post.caption}</TableCell>
+                  <TableCell className="max-w-xs truncate text-muted-foreground">{post.caption}</TableCell>
                   <TableCell className="text-right space-x-2">
                     <Button variant="ghost" size="icon" onClick={() => openEditDialog(post)}>
-                      <Edit2 className="w-4 h-4 text-blue-400" />
+                      <Edit2 className="w-4 h-4 text-primary" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleAction(post.id, 'approved', post.caption)}>
                       <Check className="w-4 h-4 text-green-400" />
@@ -117,15 +117,15 @@ export default function ApprovalQueue() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {posts.map((post) => (
-            <Card key={post.id} className="bg-zinc-900/50 border-zinc-800 overflow-hidden flex flex-col">
+            <Card key={post.id} className="bg-card/50 backdrop-blur-sm border-border overflow-hidden flex flex-col">
               <div className="relative aspect-video">
                 <img src={post.thumbnail} alt={post.title} className="w-full h-full object-cover" />
               </div>
               <CardContent className="p-4 flex-1 flex flex-col">
-                <h3 className="font-bold line-clamp-1 mb-2 text-zinc-100">{post.title}</h3>
-                <p className="text-sm text-zinc-400 line-clamp-3 mb-4 flex-1">{post.caption}</p>
-                <div className="flex gap-2 justify-end mt-auto pt-4 border-t border-zinc-800">
-                  <Button variant="ghost" size="sm" onClick={() => openEditDialog(post)} className="text-blue-400 hover:text-blue-300">
+                <h3 className="font-bold line-clamp-1 mb-2 text-foreground">{post.title}</h3>
+                <p className="text-sm text-muted-foreground line-clamp-3 mb-4 flex-1">{post.caption}</p>
+                <div className="flex gap-2 justify-end mt-auto pt-4 border-t border-border">
+                  <Button variant="ghost" size="sm" onClick={() => openEditDialog(post)} className="text-primary hover:text-primary/80">
                     <Edit2 className="w-4 h-4 mr-1" /> Edit
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => handleAction(post.id, 'rejected')} className="text-red-400 hover:text-red-300">
@@ -143,7 +143,7 @@ export default function ApprovalQueue() {
 
       {/* Edit Dialog */}
       <Dialog open={!!editingPost} onOpenChange={(open) => !open && setEditingPost(null)}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-50 sm:max-w-xl">
+        <DialogContent className="bg-background border-border text-foreground sm:max-w-xl rounded-[var(--radius)]">
           <DialogHeader>
             <DialogTitle>Edit & Approve</DialogTitle>
           </DialogHeader>
@@ -159,7 +159,7 @@ export default function ApprovalQueue() {
                 value={editCaption}
                 onChange={(e) => setEditCaption(e.target.value)}
                 rows={6}
-                className="bg-zinc-950 border-zinc-800 font-mono text-sm"
+                className="bg-input border-border font-mono text-sm"
               />
             </div>
           </div>
