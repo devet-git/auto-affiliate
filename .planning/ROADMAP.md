@@ -2,13 +2,13 @@
 
 ## Overview
 
-Hành trình xây dựng hệ thống tự động hóa tiếp thị liên kết (Shopee -> Video 3rd Party -> TikTok/FB) dành cho 1 Admin quản lý. Dự án đi từ việc xây dựng lõi Backend FastAPI/Celery, đến module lấy dữ liệu, gọi API sinh video, đăng bài đa tầng (API + Playwright + Phone) và cuối cùng là hoàn thiện Dashboard kiểm duyệt + Notibot.
+Hành trình xây dựng hệ thống tự động hóa tiếp thị liên kết (Shopee -> Cào Video Hot & Seeding -> TikTok/FB) dành cho 1 Admin quản lý. Dự án đi từ việc xây dựng lõi Backend FastAPI/Celery, đến module lấy dữ liệu, cào nội dung video nóng, tự chèn comment mồi, đăng bài đa tầng (API + Playwright + Phone) và cuối cùng là hoàn thiện Dashboard kiểm duyệt + Notibot.
 
 ## Phases
 
 - [x] **Phase 1: Foundation (Backend & Queue)** - Khởi tạo cấu trúc API, Database và luồng Message Broker. (completed 2026-03-28)
 - [x] **Phase 2: Shopee Data Pipeline** - Tự động hóa lấy data sản phẩm và sinh link Affiliate. (completed 2026-03-28)
-- [ ] **Phase 3: 3rd-Party Video Generation** - Đẩy data qua API bên thứ ba (Google Flow/HeyGen) để sinh video dọc.
+- [x] **Phase 3: Content Sourcing & Social Seeding** - Cào video có sẵn trên mạng và rải comment link Affiliate vào Hội nhóm FB. (completed 2026-03-29)
 - [ ] **Phase 4: Multi-tier Posting Options** - Xây dựng các Node đăng mạng xã hội (Official API, Browser Automation, Phone Appium).
 - [ ] **Phase 5: Command Center UI & Bot** - Hoàn thiện React Dashboard và hệ thống thông báo báo cáo Telegram.
 
@@ -42,18 +42,18 @@ Plans:
 - [x] 02-01: Module Shopee Scraper
 - [x] 02-02: Module Affiliate Link Generator
 
-### Phase 3: 3rd-Party Video Generation
-**Goal**: Chuyển đổi dữ liệu và gửi yêu cầu tạo video tự động qua API nền tảng AI.
+### Phase 3: Content Sourcing & Social Seeding
+**Goal**: Tìm và tải tự động các video hot liên quan để chuẩn bị lên bài (reup). Đồng thời tự động quét bài viết/nhóm FB để seeding comment link Affiliate.
 **Depends on**: Phase 2
-**Requirements**: [REND-01, REND-02]
+**Requirements**: [SEED-01, SEED-02]
 **Success Criteria**:
-  1. Code gọi API Google Flow / 3rd Party trả về Response chứa Video MP4 mượt mà.
-  2. Video tự động tải về / tinh chỉnh kích thước đúng form Tiktok 9:16 lưu vào hệ thống cục bộ.
+  1. Bot cào được video MP4 từ nguồn (TikTok/Douyin/Shorts) về lưu trữ thành công.
+  2. Playwright/API tự lập session login FB và comment thành công link Aff vào một bài test.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Tích hợp API Client 3rd-Party Video Generation
-- [ ] 03-02: Format Media Downloader Worker
+- [x] 03-01: Hot Video Crawler (TikTok/Douyin) & Downloader
+- [x] 03-02: Facebook Auto-Seeding & Commenting Worker
 
 ### Phase 4: Multi-tier Posting Options
 **Goal**: Tự động lên lịch và đăng tải video trên nhiều cấp độ để chống Anti-bot.
@@ -92,6 +92,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Complete    | 2026-03-28 |
 | 2. Shopee Data | 0/2 | Complete    | 2026-03-28 |
-| 3. Video Generation | 0/2 | Not started | - |
+| 3. Sourcing & Seeding | 0/2 | Complete    | 2026-03-29 |
 | 4. Posting Options | 0/3 | Not started | - |
 | 5. Command Center | 0/3 | Not started | - |
