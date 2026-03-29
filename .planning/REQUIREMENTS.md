@@ -17,10 +17,10 @@
 - [ ] **CRWL-01**: Tích hợp scraper/API lấy dữ liệu sản phẩm từ Shopee (ảnh, tên, giá).
 - [ ] **CRWL-02**: Tự động chuyển đổi shortlink sang link Affiliate Shopee.
 
-### Video Generation (REND)
+### Content Sourcing & Seeding (SEED)
 
-- [ ] **REND-01**: Tích hợp API Video Generation bên thứ 3 (ví dụ: Google Flow, HeyGen, v.v...) để sinh video từ mớ dữ liệu crawl được.
-- [ ] **REND-02**: Tự động lấy file Media trả về và tối ưu cục bộ cho định dạng dọc TikTok Reels/FB Shorts.
+- [ ] **SEED-01**: Cào video ngắn hot (TikTok/Douyin/Reels/Shorts) liên quan đến keyword sản phẩm. Tự động tải file MP4 về server.
+- [ ] **SEED-02**: Tự động tìm kiếm các bài viết/Hội nhóm Facebook liên quan đến sản phẩm và comment rải link Affiliate Shopee.
 
 ### Social Posting & Phone Automation (POST)
 
@@ -46,7 +46,7 @@
 | Feature | Reason |
 |---------|--------|
 | Multi-tenant/Phân quyền phức tạp | Hệ thống đã chốt chỉ dùng cho **1 cá nhân (Personal use)**, tránh tốn thời gian xây quyền Agent/Role vô bổ. |
-| Local Server Video Rendering | Thay đổi chiến thuật -> Cấp quyền cho máy chủ chỉ cần cấu hình cực nhẹ và gửi data cho Bên Thứ 3 dựng video. Loại bỏ Module nặng ffmpeg/moviepy backend. |
+| Video Generation/Rendering | Quyết định đi thẳng vào hướng re-up video crawl được và Seeding tự động (không render video mới mẻ hay tích hợp bên thứ 3 AI nữa). |
 | Public Website | Admin nội bộ, không tin tức, không portal. |
 
 ## Traceability
@@ -59,8 +59,8 @@
 | CORE-04 | Phase 1 | Pending |
 | CRWL-01 | Phase 2 | Pending |
 | CRWL-02 | Phase 2 | Pending |
-| REND-01 | Phase 3 | Pending |
-| REND-02 | Phase 3 | Pending |
+| SEED-01 | Phase 3 | Pending |
+| SEED-02 | Phase 3 | Pending |
 | POST-01 | Phase 4 | Pending |
 | POST-02 | Phase 4 | Pending |
 | POST-03 | Phase 4 | Pending |

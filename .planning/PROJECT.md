@@ -23,7 +23,7 @@ Khả năng vận hành tự động (hands-free) quy mô lớn với độ tin 
 - [ ] **Giao diện Quản trị (Dashboard)**: Nơi admin thiết lập chiến dịch, theo dõi luồng công việc, quản lý tài khoản và xét duyệt (approve/reject) video.
 - [ ] **Automation Pipeline (Hàng đợi tác vụ)**: Hệ thống chạy đa luồng hỗ trợ Automation theo Chiến dịch (lấy gốc từ Shopee, render hàng loạt, auto post).
 - [ ] **Hàng đợi Duyệt thủ công (Approval Queue)**: Tính năng chặn lại các video trong luồng để người dùng kiểm tra trước khi hệ thống "bơm" lên TikTok.
-- [ ] **Render Video qua 3rd-Party API**: Chuyển giao hoàn toàn việc tạo video cho bên thứ 3 (Google Flow, HeyGen, v.v...) để tối ưu chất lượng thay vì render trên server.
+- [ ] **Content Sourcing & Auto Seeding**: Không tự tạo video nữa mà cào (crawl) các video hot liên quan trên mạng để đăng lại. Kết hợp tự tìm nhóm/bài viết Facebook liên quan để comment rải link Affiliate tốc độ cao.
 - [ ] **Chiến lược Mạng xã hội Phân tầng (Multi-tier Posting)**: 
   - Tier 1: Nền tảng cấu hình sử dụng Official API (Graph API).
   - Tier 2: Tự động hóa trình duyệt mô phỏng (Playwright/Proxy).
@@ -36,7 +36,7 @@ Khả năng vận hành tự động (hands-free) quy mô lớn với độ tin 
 
 - [Public Facing Website] — Nền tảng này chỉ phục vụ duy nhất bạn (Cá nhân/Admin) quản trị tài nguyên. Không đăng ký membership cho người ngoài.
 - [Phân quyền đa mức độ Multi-tenant] — Không cần thiết vì mục đích chỉ là cấp Personal.
-- [Local Server Video Rendering] — Đã thống nhất sử dụng bên thứ 3 thay vì máy chủ chịu tải render FFmpeg thủ công.
+- [Video Generation/Rendering] — Không tạo video nữa (kể cả Local FFmpeg hay 3rd-Party API). Tối giản hóa quy trình bằng cách cào video có sẵn và đi bình luận mồi (Seeding).
 
 ## Context
 
@@ -56,7 +56,7 @@ Khả năng vận hành tự động (hands-free) quy mô lớn với độ tin 
 |----------|-----------|---------|
 | Chọn Python làm Backend | Dễ dàng tương tác với Playwright, FFmpeg và các thư viện AI. Phù hợp nhất cho automation bot. | — Pending |
 | Hệ thống đăng bài 2 Tier (API & Playwright) | Giảm thiểu khóa tài khoản hàng loạt định kỳ nhờ luân phiên proxy và mô phỏng thực. | — Pending |
-| Hybrid Video Render | Self-hosted render tiết kiệm chi phí lâu dài cho production số lượng khủng thay vì dựa dẫm vào external AI video APIs. | — Pending |
+| Ngừng Generate Video | Chuyển sang cào video hot có sẵn và reup, kết hợp auto comment nhóm FB để ra kết quả nhanh hơn, đỡ chi phí và thời gian gọi API/render. | — Chuyển hướng Phase 3 |
 
 ## Evolution
 

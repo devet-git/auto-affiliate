@@ -8,6 +8,7 @@ from app.domains.campaign import models as _campaign_models  # noqa: F401 — re
 from app.domains.shopee_crawler.router import router as crawler_router
 from app.domains.shopee_crawler import models as _shopee_models  # noqa: F401 — registers ShopeeProduct with SQLModel metadata
 from app.domains.sys_worker.router import router as worker_router
+from app.domains.content_sourcing.router import router as sourcing_router
 from app.core.database import create_db_and_tables
 
 
@@ -39,6 +40,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(worker_router, prefix="/api/v1")
 app.include_router(crawler_router, prefix="/api/v1")
+app.include_router(sourcing_router, prefix="/api/v1")
 
 
 @app.get("/api/v1/health", tags=["system"])

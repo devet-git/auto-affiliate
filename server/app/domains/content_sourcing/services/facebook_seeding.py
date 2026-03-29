@@ -30,8 +30,10 @@ try:
 except ImportError:
     APPIUM_AVAILABLE = False
 
-# Default Appium server URL (run `appium -p 4723` on host machine)
-APPIUM_SERVER_URL = "http://127.0.0.1:4723"
+from app.core.config import settings
+
+# Appium server URL — configured via APPIUM_SERVER_URL in .env
+APPIUM_SERVER_URL = settings.APPIUM_SERVER_URL
 
 # Facebook app package/activity identifiers (Android)
 FB_APP_PACKAGE = "com.facebook.katana"
@@ -48,6 +50,12 @@ def _build_driver_options(udid: str) -> "UiAutomator2Options":
     options.app_activity = FB_APP_ACTIVITY
     options.no_reset = True          # Don't reset app state (keep login session)
     options.new_command_timeout = 120  # 2 min timeout between commands
+    
+    # Fix Android 10+ permission error (WRITE_SECURE_SETTINGS on non-rooted devices)
+    options.set_capability("appium:skipDeviceInitialization", True)
+    options.set_capability("appium:skipServerInstallation", False)
+    options.set_capability("appium:ignoreHiddenApiPolicyError", True)
+    
     return options
 
 
@@ -112,26 +120,50 @@ def comment_on_post(
             "url": post_url,
             "package": FB_APP_PACKAGE,
         })
-        time.sleep(3)  # Allow post to load
+        time.sleep(5)  # Facebook load bài viết qua deep link thường mất thời gian
 
-        # Tap the comment input box
-        comment_box = wait.until(
-            EC.presence_of_element_located(
-                (AppiumBy.XPATH, '//*[contains(@text, "Write a comment") or contains(@hint, "Write a comment")]')
-            )
+        # Bước 1: Bấm nút "Bình luận" dưới bài viết trước
+        comment_btn_xpath = '//android.widget.Button[@content-desc="Bình luận" or @content-desc="Comment" or @text="Bình luận" or @text="Comment"]'
+        try:
+            print("Đang tìm nút Bình luận...")
+            comment_btn = wait.until(EC.element_to_be_clickable((AppiumBy.XPATH, comment_btn_xpath)))
+            comment_btn.click()
+            print("Đã click nút Bình luận!")
+            time.sleep(3)
+        except Exception as e:
+            print(f"Lỗi khi bấm nút Bình luận (có thể đã vào sẵn chế độ nhập): {e}")
+
+        # Bước 2: Tìm ô nhập text
+        comment_input_xpath = (
+            '//*['
+            '@class="android.widget.EditText" or @class="android.widget.AutoCompleteTextView" or '
+            'contains(@text, "Write a comment") or contains(@hint, "Write a comment") or '
+            'contains(@text, "Viết bình luận") or contains(@hint, "Viết bình luận") or '
+            'contains(@text, "Bình luận dưới tên") or contains(@hint, "Bình luận dưới tên")'
+            ']'
         )
-        comment_box.click()
-        time.sleep(1)
+        try:
+            print("Đang tìm ô nhập text...")
+            comment_box = wait.until(
+                EC.presence_of_element_located((AppiumBy.XPATH, comment_input_xpath))
+            )
+            comment_box.click()
+            time.sleep(1)
+        except Exception as e:
+            source = driver.page_source
+            with open("appium_page_source.xml", "w", encoding="utf-8") as f:
+                f.write(source)
+            print("Lỗi: Không tìm thấy ô nhập comment, đã lưu appium_page_source.xml")
+            raise e
 
         # Type the comment
         comment_box.send_keys(comment_text)
         time.sleep(1)
 
         # Submit (Send button)
+        send_btn_xpath = '//*[@content-desc="Send" or @content-desc="Gửi" or @text="Send" or @text="Gửi"]'
         send_btn = wait.until(
-            EC.element_to_be_clickable(
-                (AppiumBy.ACCESSIBILITY_ID, "Send")
-            )
+            EC.element_to_be_clickable((AppiumBy.XPATH, send_btn_xpath))
         )
         send_btn.click()
         time.sleep(2)

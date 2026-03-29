@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     # Used by /convert to automate affiliate link generation without re-login.
     SHOPEE_CMS_STATE_FILE: str = "shopee_cms_state.json"
 
+    # Appium / Android Device (Phase 3 — Facebook Seeding via real phone)
+    # UDID from `adb devices`. Leave empty if device not connected.
+    APPIUM_DEVICE_UDID: str = ""
+    APPIUM_SERVER_URL: str = "http://127.0.0.1:4723"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
