@@ -1,7 +1,7 @@
 import { useAuthStore } from '@/store/authStore';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogOut, LayoutDashboard, CheckSquare, Target, Smartphone, Zap } from 'lucide-react';
+import { LogOut, LayoutDashboard, CheckSquare, Target, Smartphone, Zap, Activity } from 'lucide-react';
 
 export default function DashboardLayout() {
   const logout = useAuthStore((state) => state.logout);
@@ -19,6 +19,7 @@ export default function DashboardLayout() {
     { label: 'Campaigns', path: '/dashboard/campaigns', icon: <Target className="w-4 h-4 mr-3" /> },
     { label: 'Thiết Bị', path: '/dashboard/devices', icon: <Smartphone className="w-4 h-4 mr-3" /> },
     { label: 'Seeding', path: '/dashboard/seeding', icon: <Zap className="w-4 h-4 mr-3" /> },
+    { label: 'System Logs', path: '/dashboard/logs', icon: <Activity className="w-4 h-4 mr-3" /> },
   ];
 
   return (
