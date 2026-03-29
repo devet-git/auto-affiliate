@@ -11,6 +11,7 @@ from app.domains.sys_worker.router import router as worker_router
 from app.domains.content_sourcing.router import router as sourcing_router
 from app.domains.approval.router import router as approval_router
 from app.domains.campaign.router import router as campaign_router
+from app.domains.notify.bot import router as telegram_router, bot, WEBHOOK_URL, WEBHOOK_SECRET, dp
 from app.core.database import create_db_and_tables
 
 
@@ -18,8 +19,23 @@ from app.core.database import create_db_and_tables
 async def lifespan(app: FastAPI):
     # Startup: create DB tables
     create_db_and_tables()
+    
+    # Try to set webhook if configured
+    if WEBHOOK_URL and WEBHOOK_URL != "https://my-ngrok.url":
+        try:
+            url = f"{WEBHOOK_URL}/api/v1/webhook/telegram"
+            await bot.set_webhook(url, secret_token=WEBHOOK_SECRET)
+        except Exception as e:
+            print(f"Error setting Telegram webhook: {e}")
+            
     yield
+    
     # Shutdown: cleanup (if needed)
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+        await bot.session.close()
+    except Exception:
+        pass
 
 
 app = FastAPI(
@@ -45,6 +61,7 @@ app.include_router(crawler_router, prefix="/api/v1")
 app.include_router(sourcing_router, prefix="/api/v1")
 app.include_router(approval_router, prefix="/api/v1")
 app.include_router(campaign_router, prefix="/api/v1")
+app.include_router(telegram_router, prefix="/api/v1")
 
 
 @app.get("/api/v1/health", tags=["system"])
