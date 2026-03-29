@@ -22,7 +22,7 @@ export default function DashboardLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-background bg-gradient-to-br from-background to-muted/20 text-foreground flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
         <div className="px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-lg">
