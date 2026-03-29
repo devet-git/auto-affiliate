@@ -20,6 +20,11 @@ export default function Campaigns() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newCampaignName, setNewCampaignName] = useState('');
 
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editCampaignName, setEditCampaignName] = useState('');
+  const [editCampaignStatus, setEditCampaignStatus] = useState('');
+
   useEffect(() => {
     fetchCampaigns();
   }, []);
@@ -52,6 +57,25 @@ export default function Campaigns() {
     try {
       await api.delete(`/campaigns/${id}`);
       setCampaigns(campaigns.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleEditOpen = (campaign: Campaign) => {
+    setEditingCampaign(campaign);
+    setEditCampaignName(campaign.name);
+    setEditCampaignStatus(campaign.status);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!editingCampaign) return;
+    try {
+      const { data } = await api.put(`/campaigns/${editingCampaign.id}`, { name: editCampaignName, status: editCampaignStatus });
+      setCampaigns(campaigns.map((c) => (c.id === editingCampaign.id ? data : c)));
+      setIsEditModalOpen(false);
+      setEditingCampaign(null);
     } catch (err) {
       console.error(err);
     }
@@ -93,6 +117,45 @@ export default function Campaigns() {
         </Dialog>
       </div>
 
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-50">
+          <DialogHeader>
+            <DialogTitle>Configure Campaign</DialogTitle>
+          </DialogHeader>
+          {editingCampaign && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm">Campaign Name</label>
+                <Input
+                  value={editCampaignName}
+                  onChange={(e) => setEditCampaignName(e.target.value)}
+                  className="bg-zinc-950 border-zinc-800"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm">Status</label>
+                <select
+                  value={editCampaignStatus}
+                  onChange={(e) => setEditCampaignStatus(e.target.value)}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="active">Active</option>
+                  <option value="paused">Paused</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleEditSave} disabled={!editCampaignName} className="bg-blue-600 hover:bg-blue-700 text-white">
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/50">
         <Table>
           <TableHeader>
@@ -125,7 +188,7 @@ export default function Campaigns() {
                   </TableCell>
                   <TableCell className="text-zinc-400">{new Date(c.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={() => handleEditOpen(c)}>
                       <Settings className="w-4 h-4 text-zinc-400" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)}>

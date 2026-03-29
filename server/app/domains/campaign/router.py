@@ -31,3 +31,17 @@ def delete_campaign(campaign_id: str, session: Session = Depends(get_session), a
         session.delete(campaign)
         session.commit()
     return {"message": "Deleted"}
+
+@router.put("/{campaign_id}", response_model=Campaign)
+def update_campaign(campaign_id: str, payload: CampaignCreate, session: Session = Depends(get_session), admin=Depends(get_current_admin)):
+    campaign = session.get(Campaign, campaign_id)
+    if not campaign:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    
+    campaign.name = payload.name
+    campaign.status = payload.status
+    session.add(campaign)
+    session.commit()
+    session.refresh(campaign)
+    return campaign
