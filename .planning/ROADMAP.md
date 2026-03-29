@@ -81,7 +81,7 @@ Plans:
 
 Plans:
 - [x] 05-01: Khởi tạo React Vite / Giao diện & Đăng nhập
-- [ ] 05-02: Màn hình Approval Queue & Quản lý Campaign
+- [x] 05-02: Màn hình Approval Queue & Quản lý Campaign
 - [ ] 05-03: Tích hợp Webhook Telegram/Discord Notifier
 
 ## Progress
