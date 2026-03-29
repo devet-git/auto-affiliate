@@ -21,8 +21,7 @@ Khả năng vận hành tự động (hands-free) quy mô lớn với độ tin 
 6. Màn hình Quản lý Target Facebook Groups và Scraped Posts theo keyword.
 7. Cập nhật Notibot: Discord Alerts nâng cao.
 
-## Current State
-Shipped v1.0 Foundation. Hệ thống bao gồm FastAPI REST server back by PostgreSQL, Celery/Redis task distribution, tích hợp Playwright Crawler Shopee, cào short video (TikTok/Douyin), Real device auto-farm qua Appium cho FB Lite/Main, và React web dashboard có Discord Bot approval notification process. 
+Shifting focus of v1.1. Phase 6 (Tooling) complete — `start-all.bat`/`stop-all.bat` operational. Phase 7 (Design System UI) complete — applying StitchMCP tokens and Inter typography.
 
 ## Requirements
 
@@ -34,10 +33,10 @@ Shipped v1.0 Foundation. Hệ thống bao gồm FastAPI REST server back by Post
 - ✓ Chiến lược Mạng xã hội Phân tầng (Multi-tier: Graph API, Playwright, Phone Appium Automation) — v1.0
 - ✓ Chat Bot Notifier (Đổi từ Telegram sang Discord.py tích hợp trong lifespan) — v1.0
 - ✓ [TOOL-01] One-click Start Script (`start-all.bat` / `stop-all.bat`) — Validated in Phase 6: Tooling & Setup
+- ✓ [UI-01] Design System từ StitchMCP và làm mịn / tạo mới UI Screens — Validated in Phase 07: Design System UI
 
 ### Active
 
-- [UI-01] Design System từ StitchMCP và làm mịn / tạo mới UI Screens
 - [DEV-01] Dashboard Quản lý Health-check Thiết bị Appium/ADB
 - [PROD-01] Quản lý Sản phẩm Shopee và Crawler URL
 - [TARG-01] Quản lý Target Facebook Groups và Scraped Posts
@@ -54,7 +53,7 @@ Shipped v1.0 Foundation. Hệ thống bao gồm FastAPI REST server back by Post
 
 - **Workflow Đặc thù**: Yêu cầu thao tác rất nhiều với đa luồng (task queue), giả lập trình duyệt, xử lý media (mp4, mkv) và quản lý state phức tạp.
 - **Tính ổn định của Account**: Các nền tảng liên tục thay đổi thuật toán chống bot, do đó việc chia Tier (API & Playwright) là bắt buộc.
-- **Bối cảnh hiện tại**: v1.1 in progress. Phase 6 (Tooling) complete — `start-all.bat`/`stop-all.bat` operational.
+- **Bối cảnh hiện tại**: v1.1 in progress. Phase 7 (Design System UI) complete.
 
 ## Constraints
 
@@ -76,4 +75,4 @@ Shipped v1.0 Foundation. Hệ thống bao gồm FastAPI REST server back by Post
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-03-29 after Phase 6 (Tooling & Setup) completion*
+*Last updated: 2026-03-29 after Phase 07 (Design System UI) completion*
