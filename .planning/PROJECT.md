@@ -8,6 +8,19 @@ Một nền tảng quản trị trung tâm (Command Center) dạng web applicati
 
 Khả năng vận hành tự động (hands-free) quy mô lớn với độ tin cậy cao, kết hợp linh hoạt giữa xử lý hàng loạt tốc độ cao và cơ chế kiểm duyệt chất lượng thủ công (Approval Queue) để bảo vệ tài sản mạng xã hội.
 
+## Current Milestone: v1.1 Trải nghiệm UI, Tooling & Mở rộng Crawler
+
+**Goal:** Hoàn thiện giao diện bằng hệ thống thiết kế mới qua StitchMCP, số hoá việc quản lý sản phẩm / nguồn seeding và xây dựng script đóng gói khởi chạy toàn cục.
+
+**Target features:**
+1. Quản lý danh mục Sản phẩm Shopee và URL tính năng tự động cào
+2. Dashboard Quản lý Status, Health-check của Thiết bị Appium/ADB
+3. One-click Start Script để khởi động toàn bộ Stack 
+4. Áp dụng Design System từ StitchMCP và làm mịn / tạo mới UI Screens.
+5. Màn hình Tracking Logs & Execution History.
+6. Màn hình Quản lý Target Facebook Groups và Scraped Posts theo keyword.
+7. Cập nhật Notibot: Discord Alerts nâng cao.
+
 ## Current State
 Shipped v1.0 Foundation. Hệ thống bao gồm FastAPI REST server back by PostgreSQL, Celery/Redis task distribution, tích hợp Playwright Crawler Shopee, cào short video (TikTok/Douyin), Real device auto-farm qua Appium cho FB Lite/Main, và React web dashboard có Discord Bot approval notification process. 
 
@@ -23,7 +36,13 @@ Shipped v1.0 Foundation. Hệ thống bao gồm FastAPI REST server back by Post
 
 ### Active
 
-(Chưa có - Milestone tiếp theo cần lên kế hoạch thông qua /gsd-new-milestone)
+- [UI-01] Design System từ StitchMCP và làm mịn / tạo mới UI Screens
+- [DEV-01] Dashboard Quản lý Health-check Thiết bị Appium/ADB
+- [PROD-01] Quản lý Sản phẩm Shopee và Crawler URL
+- [TARG-01] Quản lý Target Facebook Groups và Scraped Posts
+- [TOOL-01] One-click Start Script
+- [LOG-01] Màn hình Tracking Logs & Execution History
+- [NOTIF-01] Discord Alerts nâng cao
 
 ### Out of Scope
 
