@@ -29,8 +29,8 @@
 
 ```bash
 # Verify Frontend initialized
-test -f server/ui/package.json
-test -d server/ui/src/components/ui
+test -f web/package.json
+test -d web/src/components/ui
 
 # Verify Backend endpoint
 grep "@app.post(\"/webhook" server/app/main.py

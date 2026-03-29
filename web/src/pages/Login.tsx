@@ -27,7 +27,7 @@ export default function Login() {
     formData.append('password', password);
 
     try {
-      const { data } = await api.post('/auth/token', formData, {
+      const { data } = await api.post('/auth/login', formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
       login(data.access_token);

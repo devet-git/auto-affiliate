@@ -33,7 +33,11 @@ class Settings(BaseSettings):
     APPIUM_DEVICE_UDID: str = ""
     APPIUM_SERVER_URL: str = "http://127.0.0.1:4723"
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    # Discord Bot
+    DISCORD_BOT_TOKEN: str = "mock_discord_token"
+    DISCORD_CHANNEL_ID: str = "user_channel_id"
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="allow")
 
 
 settings = Settings()

@@ -4,7 +4,7 @@ from typing import List
 from pydantic import BaseModel
 from app.core.database import get_session
 from app.domains.campaign.models import Campaign
-from app.domains.admin.router import get_current_admin
+from app.domains.admin.dependencies import get_current_admin
 
 router = APIRouter(prefix="/campaigns", tags=["campaigns"])
 

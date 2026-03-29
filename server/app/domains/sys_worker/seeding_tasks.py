@@ -153,33 +153,33 @@ import os
 import requests
 
 @celery_app.task(
-    name="app.domains.sys_worker.seeding_tasks.notify_admin_telegram",
+    name="app.domains.sys_worker.seeding_tasks.notify_admin_discord",
     queue="celery", # Use default queue rather than appium limited queue
     max_retries=3,
     default_retry_delay=10,
 )
-def notify_admin_telegram(message: str, media_url: Optional[str] = None) -> dict:
-    """Send a notification to the admin via Telegram."""
-    bot_token = os.getenv("TELEGRAM_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+def notify_admin_discord(message: str, media_url: Optional[str] = None) -> dict:
+    """Send a notification to the admin via Discord."""
+    bot_token = os.getenv("DISCORD_BOT_TOKEN")
+    channel_id = os.getenv("DISCORD_CHANNEL_ID")
     
-    if not bot_token or not chat_id or bot_token == "mock_telegram_token":
-        logger.warning("Telegram notification skipped: Missing or mock credentials.")
+    if not bot_token or not channel_id or bot_token == "mock_discord_token":
+        logger.warning("Discord notification skipped: Missing or mock credentials.")
         return {"status": "skipped"}
     
     try:
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        payload = {
-            "chat_id": chat_id,
-            "text": message,
-            "parse_mode": "HTML"
+        url = f"https://discord.com/api/v10/channels/{channel_id}/messages"
+        headers = {
+            "Authorization": f"Bot {bot_token}",
+            "Content-Type": "application/json"
         }
-        res = requests.post(url, json=payload, timeout=10)
+        payload = {"content": message}
+        res = requests.post(url, headers=headers, json=payload, timeout=10)
         res.raise_for_status()
-        logger.info(f"[notify_admin_telegram] Notification sent to {chat_id}.")
+        logger.info(f"[notify_admin_discord] Notification sent to {channel_id}.")
         return {"status": "sent"}
     except Exception as exc:
-        logger.error(f"[notify_admin_telegram] Failed to send: {exc}")
+        logger.error(f"[notify_admin_discord] Failed to send: {exc}")
         return {"status": "error", "message": str(exc)}
 
 

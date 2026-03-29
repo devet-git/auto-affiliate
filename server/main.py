@@ -11,8 +11,9 @@ from app.domains.sys_worker.router import router as worker_router
 from app.domains.content_sourcing.router import router as sourcing_router
 from app.domains.approval.router import router as approval_router
 from app.domains.campaign.router import router as campaign_router
-from app.domains.notify.bot import router as telegram_router, bot, WEBHOOK_URL, WEBHOOK_SECRET, dp
+from app.domains.notify.bot import bot, DISCORD_BOT_TOKEN
 from app.core.database import create_db_and_tables
+import asyncio
 
 
 @asynccontextmanager
@@ -20,20 +21,18 @@ async def lifespan(app: FastAPI):
     # Startup: create DB tables
     create_db_and_tables()
     
-    # Try to set webhook if configured
-    if WEBHOOK_URL and WEBHOOK_URL != "https://my-ngrok.url":
-        try:
-            url = f"{WEBHOOK_URL}/api/v1/webhook/telegram"
-            await bot.set_webhook(url, secret_token=WEBHOOK_SECRET)
-        except Exception as e:
-            print(f"Error setting Telegram webhook: {e}")
+    # Start Discord Bot in background
+    bot_task = None
+    if DISCORD_BOT_TOKEN and DISCORD_BOT_TOKEN != "mock_discord_token":
+        bot_task = asyncio.create_task(bot.start(DISCORD_BOT_TOKEN))
             
     yield
     
-    # Shutdown: cleanup (if needed)
+    # Shutdown: cleanup
     try:
-        await bot.delete_webhook(drop_pending_updates=True)
-        await bot.session.close()
+        if bot_task:
+            await bot.close()
+            bot_task.cancel()
     except Exception:
         pass
 
@@ -61,7 +60,6 @@ app.include_router(crawler_router, prefix="/api/v1")
 app.include_router(sourcing_router, prefix="/api/v1")
 app.include_router(approval_router, prefix="/api/v1")
 app.include_router(campaign_router, prefix="/api/v1")
-app.include_router(telegram_router, prefix="/api/v1")
 
 
 @app.get("/api/v1/health", tags=["system"])

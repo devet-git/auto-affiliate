@@ -1,62 +1,69 @@
 import os
 import logging
-from fastapi import APIRouter, Request, Header, HTTPException
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
+import discord
+from discord import app_commands
 from sqlmodel import Session
 from app.core.database import engine
 from app.domains.shopee_crawler.models import ShopeeProduct, ProductStatus
 
+from discord.ext import commands
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "mock_token")
-WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "my-secret-token")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "123456")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
+DISCORD_BOT_TOKEN = settings.DISCORD_BOT_TOKEN
 
-bot = Bot(token=TELEGRAM_TOKEN)
-dp = Dispatcher()
-router = APIRouter(prefix="/webhook", tags=["telegram"])
+# Intents setup
+intents = discord.Intents.default()
+# KHÔNG BẬT message_content để tránh lỗi Crash nếu chưa mở Privileged Intents trên web
+# intents.message_content = True
 
-@dp.message(Command("approve"))
-async def cmd_approve(message: types.Message):
-    parts = message.text.split()
-    if len(parts) < 2:
-        await message.reply("Vui lòng cung cấp ID. Ví dụ: /approve 123")
-        return
+# Khởi tạo bot bằng commands.Bot gọn nhẹ hơn
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-    post_id = parts[1]
-    
+@bot.tree.command(name="approve", description="Phê duyệt một video/post bằng ID")
+@app_commands.describe(post_id="ID của bản ghi cần duyệt")
+async def cmd_approve(interaction: discord.Interaction, post_id: int):
     with Session(engine) as session:
         try:
-            post_id_int = int(post_id)
-            if post_id_int in [999, 1000]:
-                await message.reply(f"Đã duyệt UI mock ID {post_id_int}!")
+            if post_id in [999, 1000]:
+                await interaction.response.send_message(f"Đã duyệt UI mock ID {post_id}!")
                 return
                 
-            product = session.get(ShopeeProduct, post_id_int)
+            product = session.get(ShopeeProduct, post_id)
             if not product:
-                await message.reply(f"Không tìm thấy bản ghi với ID: {post_id_int}")
+                await interaction.response.send_message(f"Không tìm thấy bản ghi với ID: {post_id}", ephemeral=True)
                 return
                 
             product.status = ProductStatus.CONVERTED
             session.add(product)
             session.commit()
-            await message.reply(f"✅ Đã duyệt thành công ID {post_id_int}!")
+            await interaction.response.send_message(f"✅ Đã duyệt thành công ID {post_id}!")
         except Exception as e:
             logger.error(f"Error approving {post_id}: {e}")
-            await message.reply(f"Lỗi xử lý duyệt ID {post_id}")
+            await interaction.response.send_message(f"Lỗi xử lý duyệt ID {post_id}", ephemeral=True)
 
-
-@router.post("/telegram")
-async def handle_webhook(request: Request, x_telegram_bot_api_secret_token: str = Header(None)):
-    """Receives webhook updates from Telegram."""
-    if x_telegram_bot_api_secret_token != WEBHOOK_SECRET:
-        raise HTTPException(status_code=403, detail="Invalid webhook secret token")
-
-    data = await request.json()
-    from aiogram.types import Update
-    # validate incoming data as Update
-    update = Update.model_validate(data, context={"bot": bot})
-    await dp.feed_update(bot=bot, update=update)
-    return {"status": "ok"}
+@bot.event
+async def on_ready():
+    print(f"✅ [Discord] Logged in as {bot.user} (ID: {bot.user.id})")
+    
+    # Ép đồng bộ Slash Command LẬP TỨC cho tất cả Server bot đang tham gia
+    # để tránh bị Discord cache 1 tiếng
+    try:
+        synced_count = 0
+        for guild in bot.guilds:
+            try:
+                bot.tree.copy_global_to(guild=guild)
+                await bot.tree.sync(guild=guild)
+                synced_count += 1
+                print(f"✅ [Discord] Synced /approve command to Server '{guild.name}'!")
+            except discord.Forbidden:
+                print(f"❌ [Discord] Forbidden on '{guild.name}' (Thiếu quyền 'applications.commands' lúc invite!)")
+            except discord.HTTPException as e:
+                print(f"❌ [Discord] HTTP error syncing on '{guild.name}': {e}")
+                
+        if len(bot.guilds) == 0:
+            print("⚠️ [Discord] Bot chưa được mời vào bất kỳ Server nào!")
+            
+    except Exception as e:
+        print(f"❌ [Discord] Error in on_ready: {e}")

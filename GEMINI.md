@@ -56,4 +56,14 @@ Follow every rule here strictly. These are non-negotiable project conventions.
 | Browser Automation | Playwright (async) |
 | Phone Automation | Appium + UiAutomator2 |
 | Video Processing | ffmpeg-python + yt-dlp |
-| Frontend (future) | React Vite |
+| Frontend | React Vite + Shadcn UI + Tailwind CSS |
+
+---
+
+## Frontend Conventions
+
+- **Working directory for web frontend**: always `web/` (not `server/ui/` or project root).
+- **Framework**: React Vite + Shadcn UI + Tailwind CSS
+- **Routing**: React Router
+- **State Management**: Zustand / React Query
+- All frontend terminal commands (e.g., `npm install`, `npm run dev`, `npx shadcn@latest add`) MUST be executed inside the `web/` directory.

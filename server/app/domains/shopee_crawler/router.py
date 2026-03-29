@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.database import get_session
 from app.domains.admin.dependencies import get_current_admin
 from app.domains.shopee_crawler.service import run_batch_affiliate_conversion, search_and_save
-from app.domains.sys_worker.seeding_tasks import notify_admin_telegram
+from app.domains.sys_worker.seeding_tasks import notify_admin_discord
 
 router = APIRouter(prefix="/crawler/shopee", tags=["shopee-crawler"])
 
@@ -173,11 +173,11 @@ def trigger_affiliate_conversion(
         stats = run_batch_affiliate_conversion(session=session)
         
         if stats["converted"] > 0:
-            notify_admin_telegram.delay(
-                f"🎉 <b>Batch conversion complete!</b>\n"
+            notify_admin_discord.delay(
+                f"🎉 **Batch conversion complete!**\n"
                 f"Successfully converted {stats['converted']} links.\n"
                 f"Failed: {stats['failed']}\n"
-                f"Access the Dashboard Approval Queue to review and post."
+                f"Access the Dashboard Approval Queue or run `/approve <id>` to review and post."
             )
             
         return ConvertResponse(
