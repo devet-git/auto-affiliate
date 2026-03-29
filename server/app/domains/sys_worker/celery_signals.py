@@ -24,7 +24,8 @@ def task_prerun_handler(sender=None, task_id=None, task=None, args=None, kwargs=
         print(f"Error logging task start: {e}")
 
 @task_success.connect
-def task_success_handler(sender=None, task_id=None, result=None, **kwargs):
+def task_success_handler(sender=None, result=None, **kwargs):
+    task_id = sender.request.id if sender and sender.request else kwargs.get("task_id")
     try:
         with Session(engine) as session:
             statement = select(TaskLog).where(TaskLog.task_id == task_id)
@@ -43,7 +44,8 @@ def task_success_handler(sender=None, task_id=None, result=None, **kwargs):
         print(f"Error logging task success: {e}")
 
 @task_failure.connect
-def task_failure_handler(sender=None, task_id=None, exception=None, traceback=None, **kwargs):
+def task_failure_handler(sender=None, exception=None, traceback=None, **kwargs):
+    task_id = sender.request.id if getattr(sender, 'request', None) else kwargs.get("task_id")
     try:
         with Session(engine) as session:
             statement = select(TaskLog).where(TaskLog.task_id == task_id)
