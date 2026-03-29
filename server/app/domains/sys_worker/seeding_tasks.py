@@ -34,6 +34,7 @@ def exec_fb_comment(
     udid: str,
     post_url: str,
     comment_text: str,
+    app_type: str = 'lite',
 ) -> dict:
     """
     Execute a Facebook comment action on a real Android device via Appium.
@@ -51,9 +52,9 @@ def exec_fb_comment(
     """
     from app.domains.content_sourcing.services.facebook_seeding import comment_on_post
 
-    logger.info(f"[exec_fb_comment] Device={udid} | Post={post_url}")
+    logger.info(f"[exec_fb_comment] Device={udid} | App={app_type} | Post={post_url}")
     try:
-        success = comment_on_post(udid=udid, post_url=post_url, comment_text=comment_text)
+        success = comment_on_post(udid=udid, post_url=post_url, comment_text=comment_text, app_type=app_type)
         status = "commented" if success else "failed"
         logger.info(f"[exec_fb_comment] Result={status} | Post={post_url}")
         return {
@@ -79,6 +80,7 @@ def exec_fb_batch_comment(
     post_urls: list[str],
     comment_text: str,
     delay_between: float = 30.0,
+    app_type: str = 'lite',
 ) -> dict:
     """
     Execute batch Facebook comments on a list of posts.
@@ -104,6 +106,7 @@ def exec_fb_batch_comment(
             post_urls=post_urls,
             comment_text=comment_text,
             delay_between=delay_between,
+            app_type=app_type,
         )
         total = len(results)
         succeeded = sum(1 for v in results.values() if v)

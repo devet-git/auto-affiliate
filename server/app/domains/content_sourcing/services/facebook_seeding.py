@@ -39,47 +39,7 @@ APPIUM_SERVER_URL = settings.APPIUM_SERVER_URL
 FB_APP_PACKAGE = "com.facebook.katana"
 FB_APP_ACTIVITY = "com.facebook.katana.LoginActivity"
 
-
-def _build_driver_options(udid: str) -> "UiAutomator2Options":
-    """Build Appium options for a specific Android device UDID."""
-    options = UiAutomator2Options()
-    options.platform_name = "Android"
-    options.automation_name = "UiAutomator2"
-    options.udid = udid
-    options.app_package = FB_APP_PACKAGE
-    options.app_activity = FB_APP_ACTIVITY
-    options.no_reset = True          # Don't reset app state (keep login session)
-    options.new_command_timeout = 120  # 2 min timeout between commands
-    
-    # Fix Android 10+ permission error (WRITE_SECURE_SETTINGS on non-rooted devices)
-    options.set_capability("appium:skipDeviceInitialization", True)
-    options.set_capability("appium:skipServerInstallation", False)
-    options.set_capability("appium:ignoreHiddenApiPolicyError", True)
-    
-    return options
-
-
-def get_driver(udid: str) -> "webdriver.Remote":
-    """
-    Create an Appium WebDriver session for the given device.
-
-    Args:
-        udid: Android device UDID (from `adb devices`). E.g. "emulator-5554"
-              or "192.168.1.100:5555" for Wi-Fi ADB.
-
-    Returns:
-        Appium WebDriver session connected to the device.
-
-    Raises:
-        ImportError: If appium-python-client is not installed.
-        Exception: If connection to Appium server fails.
-    """
-    if not APPIUM_AVAILABLE:
-        raise ImportError(
-            "appium-python-client is required: pip install Appium-Python-Client"
-        )
-    options = _build_driver_options(udid)
-    return webdriver.Remote(APPIUM_SERVER_URL, options=options)
+from app.domains.content_sourcing.services.appium_controller import get_driver
 
 
 def comment_on_post(
@@ -87,6 +47,7 @@ def comment_on_post(
     post_url: str,
     comment_text: str,
     timeout: int = 30,
+    app_type: str = 'lite',
 ) -> bool:
     """
     Use a real Android device (via Appium) to comment on a Facebook post.
@@ -104,6 +65,7 @@ def comment_on_post(
         post_url: Facebook post URL to comment on.
         comment_text: The comment body (typically an affiliate link).
         timeout: Max seconds to wait for UI elements.
+        app_type: App context ('main' or 'lite'). Default is 'lite'.
 
     Returns:
         True if comment was submitted successfully, False otherwise.
@@ -111,7 +73,7 @@ def comment_on_post(
     if not APPIUM_AVAILABLE:
         raise ImportError("appium-python-client is required.")
 
-    driver = get_driver(udid)
+    driver = get_driver(udid, app_type)
     try:
         wait = WebDriverWait(driver, timeout)
 
@@ -183,6 +145,7 @@ def batch_comment(
     post_urls: list[str],
     comment_text: str,
     delay_between: float = 30.0,
+    app_type: str = 'lite',
 ) -> dict[str, bool]:
     """
     Comment on multiple posts sequentially using a single device.
@@ -199,7 +162,7 @@ def batch_comment(
     """
     results: dict[str, bool] = {}
     for i, url in enumerate(post_urls):
-        success = comment_on_post(udid, url, comment_text)
+        success = comment_on_post(udid, url, comment_text, app_type=app_type)
         results[url] = success
         if i < len(post_urls) - 1:
             time.sleep(delay_between)
