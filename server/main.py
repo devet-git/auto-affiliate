@@ -8,6 +8,7 @@ from app.domains.campaign import models as _campaign_models  # noqa: F401 — re
 from app.domains.devices import models as _device_models  # noqa: F401 — registers Device with SQLModel metadata
 from app.domains.shopee_crawler.router import router as crawler_router
 from app.domains.shopee_crawler import models as _shopee_models  # noqa: F401 — registers ShopeeProduct with SQLModel metadata
+from app.domains.sys_worker import models as _sys_worker_models  # noqa: F401 — registers TaskLog and AppSetting
 from app.domains.sys_worker.router import router as worker_router
 from app.domains.content_sourcing.router import router as sourcing_router
 from app.domains.approval.router import router as approval_router

@@ -31,3 +31,5 @@ celery_app.conf.update(
     worker_pool="solo",
 )
 
+# Register signals
+import app.domains.sys_worker.celery_signals  # noqa: F401
