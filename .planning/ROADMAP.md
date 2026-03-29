@@ -80,7 +80,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: Khởi tạo React Vite / Giao diện & Đăng nhập
+- [x] 05-01: Khởi tạo React Vite / Giao diện & Đăng nhập
 - [ ] 05-02: Màn hình Approval Queue & Quản lý Campaign
 - [ ] 05-03: Tích hợp Webhook Telegram/Discord Notifier
 
