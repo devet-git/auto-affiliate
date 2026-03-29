@@ -40,7 +40,7 @@ FB_APP_PACKAGE = "com.facebook.katana"
 FB_APP_ACTIVITY = "com.facebook.katana.LoginActivity"
 
 from app.domains.content_sourcing.services.appium_controller import get_driver
-
+from app.domains.content_sourcing.services.warmup import warmup_news_feed
 
 def comment_on_post(
     udid: str,
@@ -75,7 +75,11 @@ def comment_on_post(
 
     driver = get_driver(udid, app_type)
     try:
+        # Xây dựng lòng tin bằng cách lướt Feed ngẫu nhiên trước khi tìm bài
+        warmup_news_feed(driver, duration_sec=30)
+    
         wait = WebDriverWait(driver, timeout)
+
 
         # Open post via deep link using platform-specific URL scheme
         driver.execute_script("mobile: deepLink", {
