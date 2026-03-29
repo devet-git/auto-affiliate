@@ -26,6 +26,12 @@ celery_app.conf.update(
         "app.domains.sys_worker.seeding_tasks.notify_admin_discord": {"queue": "default"},
     },
     task_track_started=True,
+    beat_schedule={
+        "cleanup_logs_daily": {
+            "task": "app.domains.sys_worker.tasks.cleanup_expired_logs",
+            "schedule": 86400.0, # Run every day (in seconds)
+        }
+    },
     # Windows fix: billiard spawn pool gây PermissionError trên Windows
     # Solo pool chạy task trong cùng process — đúng cho worker concurrency=1 (appium_phone)
     worker_pool="solo",
