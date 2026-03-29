@@ -33,6 +33,7 @@ Shipped v1.0 Foundation. Hệ thống bao gồm FastAPI REST server back by Post
 - ✓ Content Sourcing & Auto Seeding (Shopee Scraper -> Affiliate Generator -> TikTok/Douyin Catcher -> FB Poster) — v1.0
 - ✓ Chiến lược Mạng xã hội Phân tầng (Multi-tier: Graph API, Playwright, Phone Appium Automation) — v1.0
 - ✓ Chat Bot Notifier (Đổi từ Telegram sang Discord.py tích hợp trong lifespan) — v1.0
+- ✓ [TOOL-01] One-click Start Script (`start-all.bat` / `stop-all.bat`) — Validated in Phase 6: Tooling & Setup
 
 ### Active
 
@@ -40,7 +41,6 @@ Shipped v1.0 Foundation. Hệ thống bao gồm FastAPI REST server back by Post
 - [DEV-01] Dashboard Quản lý Health-check Thiết bị Appium/ADB
 - [PROD-01] Quản lý Sản phẩm Shopee và Crawler URL
 - [TARG-01] Quản lý Target Facebook Groups và Scraped Posts
-- [TOOL-01] One-click Start Script
 - [LOG-01] Màn hình Tracking Logs & Execution History
 - [NOTIF-01] Discord Alerts nâng cao
 
@@ -54,7 +54,7 @@ Shipped v1.0 Foundation. Hệ thống bao gồm FastAPI REST server back by Post
 
 - **Workflow Đặc thù**: Yêu cầu thao tác rất nhiều với đa luồng (task queue), giả lập trình duyệt, xử lý media (mp4, mkv) và quản lý state phức tạp.
 - **Tính ổn định của Account**: Các nền tảng liên tục thay đổi thuật toán chống bot, do đó việc chia Tier (API & Playwright) là bắt buộc.
-- **Bối cảnh hiện tại**: v1.0 Completed. Core infrastructure operational and audited. 
+- **Bối cảnh hiện tại**: v1.1 in progress. Phase 6 (Tooling) complete — `start-all.bat`/`stop-all.bat` operational.
 
 ## Constraints
 
@@ -76,4 +76,4 @@ Shipped v1.0 Foundation. Hệ thống bao gồm FastAPI REST server back by Post
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-03-29 after v1.0 milestone completion*
+*Last updated: 2026-03-29 after Phase 6 (Tooling & Setup) completion*
