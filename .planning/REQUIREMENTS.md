@@ -26,7 +26,7 @@
 - [ ] **NOTIF-02**: Cảnh báo tức thời nếu luồng Scraper bị kẹt / IP bị chặn, và một Daily Report vào mỗi sáng.
 
 ## [TOOLING] Script Khởi chạy Hệ thống
-- [ ] **TOOL-01**: Viết `.bat` (Windows) để khởi động toàn bộ dependencies bằng một click: FastAPI, tất cả các hàng đợi Celery workers, Appium Server, Vite React dev server.
+- [x] **TOOL-01**: Viết `.bat` (Windows) để khởi động toàn bộ dependencies bằng một click: FastAPI, tất cả các hàng đợi Celery workers, Appium Server, Vite React dev server.
 
 ## Future Requirements (Deferred)
 - (None at present)
