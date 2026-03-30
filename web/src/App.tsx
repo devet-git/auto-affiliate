@@ -7,6 +7,8 @@ import Campaigns from './pages/Campaigns';
 import Devices from './pages/Devices';
 import SeedingControl from './pages/SeedingControl';
 import ExecutionLogs from './pages/ExecutionLogs';
+import Products from './pages/Products';
+
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
             <Route path="devices" element={<Devices />} />
             <Route path="seeding" element={<SeedingControl />} />
             <Route path="logs" element={<ExecutionLogs />} />
+            <Route path="products" element={<Products />} />
+
           </Route>
         </Route>
       </Routes>
