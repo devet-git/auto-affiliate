@@ -1,8 +1,9 @@
 import json
 import os
 from pathlib import Path
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from pydantic import BaseModel
 from sqlmodel import Session
 
@@ -10,6 +11,21 @@ from app.core.config import settings
 from app.core.database import get_session
 from app.domains.admin.dependencies import get_current_admin
 from app.domains.shopee_crawler.service import run_batch_affiliate_conversion, search_and_save
+from app.domains.shopee_crawler.crawler_service import (
+    get_or_create_config,
+    update_config,
+    get_sources,
+    create_source,
+    delete_source,
+    get_products,
+)
+from app.domains.shopee_crawler.models import (
+    CrawlerConfigPublic,
+    CrawlerConfigUpdate,
+    CrawlerSourceCreate,
+    CrawlerSourcePublic,
+    ShopeeProductPublic,
+)
 from app.domains.sys_worker.seeding_tasks import notify_admin_discord
 
 router = APIRouter(prefix="/crawler/shopee", tags=["shopee-crawler"])
@@ -196,3 +212,111 @@ def trigger_affiliate_conversion(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
+
+# ============================================================
+# Product Management — Crawler Config, Sources, Products List
+# ============================================================
+
+
+@router.get("/config", response_model=CrawlerConfigPublic, tags=["product-management"])
+def get_crawler_config(
+    session: Session = Depends(get_session),
+    _admin: dict = Depends(get_current_admin),
+) -> CrawlerConfigPublic:
+    """Return the current crawler configuration (frequency, next run time)."""
+    config = get_or_create_config(session)
+    return CrawlerConfigPublic(
+        id=config.id,
+        frequency_hours=config.frequency_hours,
+        next_run_time=config.next_run_time,
+    )
+
+
+@router.patch("/config", response_model=CrawlerConfigPublic, tags=["product-management"])
+def patch_crawler_config(
+    body: CrawlerConfigUpdate,
+    session: Session = Depends(get_session),
+    _admin: dict = Depends(get_current_admin),
+) -> CrawlerConfigPublic:
+    """Update the crawler frequency and/or next run time."""
+    config = update_config(session, body)
+    return CrawlerConfigPublic(
+        id=config.id,
+        frequency_hours=config.frequency_hours,
+        next_run_time=config.next_run_time,
+    )
+
+
+@router.get("/sources", response_model=List[CrawlerSourcePublic], tags=["product-management"])
+def list_crawler_sources(
+    session: Session = Depends(get_session),
+    _admin: dict = Depends(get_current_admin),
+) -> List[CrawlerSourcePublic]:
+    """List all configured crawl sources (keywords and shop URLs)."""
+    sources = get_sources(session)
+    return [
+        CrawlerSourcePublic(
+            id=s.id,
+            source_type=s.source_type,
+            value=s.value,
+            is_active=s.is_active,
+        )
+        for s in sources
+    ]
+
+
+@router.post("/sources", response_model=CrawlerSourcePublic, status_code=201, tags=["product-management"])
+def add_crawler_source(
+    body: CrawlerSourceCreate,
+    session: Session = Depends(get_session),
+    _admin: dict = Depends(get_current_admin),
+) -> CrawlerSourcePublic:
+    """Add a new keyword or shop URL as a crawler source."""
+    if not body.value.strip():
+        raise HTTPException(status_code=422, detail="value must not be empty")
+    source = create_source(session, body)
+    return CrawlerSourcePublic(
+        id=source.id,
+        source_type=source.source_type,
+        value=source.value,
+        is_active=source.is_active,
+    )
+
+
+@router.delete("/sources/{source_id}", status_code=204, tags=["product-management"])
+def remove_crawler_source(
+    source_id: int,
+    session: Session = Depends(get_session),
+    _admin: dict = Depends(get_current_admin),
+) -> None:
+    """Delete a crawler source by ID."""
+    deleted = delete_source(session, source_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail=f"Source {source_id} not found")
+
+
+@router.get("/products", response_model=List[ShopeeProductPublic], tags=["product-management"])
+def list_products(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, le=200),
+    status: Optional[str] = Query(default=None, description="Filter by status: PENDING, CONVERTED, FAILED"),
+    keyword: Optional[str] = Query(default=None, description="Filter by keyword"),
+    session: Session = Depends(get_session),
+    _admin: dict = Depends(get_current_admin),
+) -> List[ShopeeProductPublic]:
+    """List scraped Shopee products with optional status/keyword filtering."""
+    products = get_products(session, skip=skip, limit=limit, status=status, keyword=keyword)
+    return [
+        ShopeeProductPublic(
+            id=p.id,
+            original_url=p.original_url,
+            affiliate_url=p.affiliate_url,
+            title=p.title,
+            price=p.price,
+            image_urls=p.image_urls,
+            status=p.status,
+            keyword=p.keyword,
+            created_at=p.created_at,
+        )
+        for p in products
+    ]
