@@ -1,5 +1,5 @@
 import json
-import traceback
+import traceback as traceback_module
 from datetime import datetime
 from celery.signals import task_prerun, task_success, task_failure
 from sqlmodel import Session, select
@@ -53,7 +53,19 @@ def task_failure_handler(sender=None, exception=None, traceback=None, **kwargs):
             if log:
                 log.status = "FAILED"
                 log.finished_at = datetime.utcnow()
-                log.error_traceback = str(traceback) if traceback else str(exception)
+                # Format traceback into human-readable text
+                einfo = kwargs.get("einfo")
+                if einfo is not None:
+                    # Celery's ExceptionInfo has a pre-formatted traceback string
+                    formatted_tb = str(einfo)
+                elif traceback is not None:
+                    # Raw traceback object — format it properly
+                    formatted_tb = "".join(traceback_module.format_tb(traceback))
+                    if exception:
+                        formatted_tb += f"\n{type(exception).__name__}: {exception}"
+                else:
+                    formatted_tb = str(exception)
+                log.error_traceback = formatted_tb
                 session.add(log)
                 session.commit()
     except Exception as e:
