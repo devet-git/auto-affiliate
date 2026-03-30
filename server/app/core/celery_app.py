@@ -9,6 +9,7 @@ celery_app = Celery(
     include=[
         "app.domains.sys_worker.tasks",
         "app.domains.sys_worker.seeding_tasks",  # FB comment/reel via Appium
+        "app.domains.shopee_crawler.tasks",      # Shopee product crawler
     ],
 )
 
@@ -29,8 +30,12 @@ celery_app.conf.update(
     beat_schedule={
         "cleanup_logs_daily": {
             "task": "app.domains.sys_worker.tasks.cleanup_expired_logs",
-            "schedule": 86400.0, # Run every day (in seconds)
-        }
+            "schedule": 86400.0,  # Run every day (in seconds)
+        },
+        "crawler_scheduler_tick": {
+            "task": "app.domains.shopee_crawler.tasks.crawler_scheduler_tick",
+            "schedule": 900.0,  # Run every 15 minutes — checks CrawlerConfig.next_run_time
+        },
     },
     # Windows fix: billiard spawn pool gây PermissionError trên Windows
     # Solo pool chạy task trong cùng process — đúng cho worker concurrency=1 (appium_phone)
