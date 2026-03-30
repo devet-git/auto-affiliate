@@ -1,10 +1,10 @@
 ---
-updated: 2026-03-30T11:38:00Z
-status: partial
+status: passed
+updated: 2026-03-30T11:44:00Z
 ---
 
 ## Current Test
-[testing complete]
+[testing complete — all 5 tests passed ✓]
 
 ## Tests
 
@@ -25,16 +25,14 @@ expected: Navigate to the "System Logs" sidebar item. A Shadcn-styled data table
 result: pass
 
 ### 5. View Task Error Details
-expected: Find a failed task execution in the System Logs table. Click the terminal icon button in its row. A browser alert or modal should display the error traceback successfully.
-result: issue
-reported: "pass, but error message not detail, like: <traceback object at 0x0000021A192EAD00>"
-severity: minor
+expected: Find a failed task execution in the System Logs table. Click the terminal icon button in its row. A browser alert or modal should display the error traceback as a human-readable stack trace (not a Python object pointer like <traceback object at 0x...>).
+result: pass
 
 ## Summary
 
 total: 5
-passed: 4
-issues: 1
+passed: 5
+issues: 0
 pending: 0
 skipped: 0
 
