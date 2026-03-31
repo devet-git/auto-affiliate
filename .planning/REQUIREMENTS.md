@@ -5,8 +5,8 @@
 - [ ] **UI-02**: Áp dụng Design System mới để Refresh và làm mượt mặt các màn hình hiện tại (Dashboard, Approval Queue, Campaigns).
 
 ## [DEVICES] Quản lý Thiết bị
-- [ ] **DEV-01**: Xây dựng màn hình Device Management để hiển thị danh sách thiết bị kèm trạng thái kết nối.
-- [ ] **DEV-02**: Backend task (Celery Beat) định kỳ ping `adb devices` hoặc Appium session status để cập nhật tình trạng thiết bị (Online, Offline, Busy).
+- [x] **DEV-01**: Xây dựng màn hình Device Management để hiển thị danh sách thiết bị kèm trạng thái kết nối.
+- [x] **DEV-02**: Backend task (Celery Beat) định kỳ ping `adb devices` hoặc Appium session status để cập nhật tình trạng thiết bị (Online, Offline, Busy).
 
 ## [PRODUCTS] Quản lý Nguồn Sản phẩm
 - [ ] **PROD-01**: Màn hình Web quản lý trực quan danh sách Sản phẩm kéo từ Shopee (Ảnh, Tên, Giá, Affiliate URL đã tạo).
@@ -22,8 +22,8 @@
 - [ ] **LOG-02**: Màn hình "Execution Logs" lấy log từ DB dạng Table và biểu đồ (như success rate, total runs) để theo dõi tiến độ dễ dàng.
 
 ## [NOTIFICATIONS] Bot Discord
-- [ ] **NOTIF-01**: Bot tự động cảnh báo channel khi Thiết bị (Device) Offline hoặc mất kết nối mạng.
-- [ ] **NOTIF-02**: Cảnh báo tức thời nếu luồng Scraper bị kẹt / IP bị chặn, và một Daily Report vào mỗi sáng.
+- [x] **NOTIF-01**: Bot tự động cảnh báo channel khi Thiết bị (Device) Offline hoặc mất kết nối mạng.
+- [x] **NOTIF-02**: Cảnh báo tức thời nếu luồng Scraper bị kẹt / IP bị chặn, và một Daily Report vào mỗi sáng.
 
 ## [TOOLING] Script Khởi chạy Hệ thống
 - [x] **TOOL-01**: Viết `.bat` (Windows) để khởi động toàn bộ dependencies bằng một click: FastAPI, tất cả các hàng đợi Celery workers, Appium Server, Vite React dev server.
