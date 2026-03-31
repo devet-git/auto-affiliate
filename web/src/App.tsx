@@ -8,6 +8,7 @@ import Devices from './pages/Devices';
 import SeedingControl from './pages/SeedingControl';
 import ExecutionLogs from './pages/ExecutionLogs';
 import Products from './pages/Products';
+import TargetGroups from './pages/TargetGroups';
 
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="seeding" element={<SeedingControl />} />
             <Route path="logs" element={<ExecutionLogs />} />
             <Route path="products" element={<Products />} />
+            <Route path="targets" element={<TargetGroups />} />
 
           </Route>
         </Route>
