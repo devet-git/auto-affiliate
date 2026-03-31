@@ -8,7 +8,7 @@
 | 7 | Design System UI | Triển khai Design Token mới qua StitchMCP cho Frontend Web App | UI-01, UI-02 | 2 |
 | 8 | Log Tracking | Thiết kế Logging & Màn hình hiển thị Lịch sử System | LOG-01, LOG-02 | 2 |
 | 9 | Product Management | Crawl sản phẩm Shopee background và Màn hình hiển thị danh sách SP | PROD-01, PROD-02 | 2 |
-| 10 | Target Groups Tracker | Cấu trúc tự động cào bài viết nhạy theo Groups và UI quản lý mồi | TARG-01, TARG-02, TARG-03 | 3 |
+| 10 | Target Groups Tracker | 1/1 | Complete   | 2026-03-31 |
 | 11 | Device Monitor & Alerts | Health-check Appium Devices, Discord Bot Report & Warning | DEV-01, DEV-02, NOTIF-01, NOTIF-02| 4 |
 
 ### Phase Details
