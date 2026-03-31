@@ -10,6 +10,7 @@ celery_app = Celery(
         "app.domains.sys_worker.tasks",
         "app.domains.sys_worker.seeding_tasks",  # FB comment/reel via Appium
         "app.domains.shopee_crawler.tasks",      # Shopee product crawler
+        "app.domains.target_groups.tasks",       # Facebook group scraper
     ],
 )
 
@@ -35,6 +36,10 @@ celery_app.conf.update(
         "crawler_scheduler_tick": {
             "task": "app.domains.shopee_crawler.tasks.crawler_scheduler_tick",
             "schedule": 900.0,  # Run every 15 minutes — checks CrawlerConfig.next_run_time
+        },
+        "facebook_scheduler_tick": {
+            "task": "app.domains.target_groups.tasks.facebook_scheduler_tick",
+            "schedule": 900.0,  # Run every 15 minutes — checks TargetGroupConfig.next_run_time
         },
     },
     # Windows fix: billiard spawn pool gây PermissionError trên Windows

@@ -193,8 +193,18 @@ def _load_fb_storage_state() -> Optional[dict]:
 
     # Cookie-Editor flat array format — convert to storage_state
     if isinstance(raw, list):
+        # sameSite value mapping: Cookie-Editor → Playwright
+        same_site_map = {
+            "no_restriction": "None",
+            "lax": "Lax",
+            "strict": "Strict",
+            "unspecified": "None",
+            None: "None",
+        }
         cookies = []
         for c in raw:
+            raw_same_site = (c.get("sameSite") or "").lower()
+            playwright_same_site = same_site_map.get(raw_same_site, "None")
             cookie: dict = {
                 "name": c.get("name", ""),
                 "value": c.get("value", ""),
@@ -202,7 +212,7 @@ def _load_fb_storage_state() -> Optional[dict]:
                 "path": c.get("path", "/"),
                 "secure": c.get("secure", True),
                 "httpOnly": c.get("httpOnly", False),
-                "sameSite": c.get("sameSite", "None"),
+                "sameSite": playwright_same_site,
             }
             if "expirationDate" in c:
                 cookie["expires"] = int(c["expirationDate"])
