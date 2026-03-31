@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
   RefreshCw, Plus, Trash2, Users, MessagesSquare, CheckCircle2, XCircle, Clock,
+  Play, Upload, AlertCircle,
 } from 'lucide-react';
 
 const API = 'http://localhost:8000/api/v1/target-groups';
@@ -72,6 +73,8 @@ export default function TargetGroups() {
   // Groups state
   const [groups, setGroups] = useState<TargetGroup[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(false);
+  const [scrapingGroupId, setScrapingGroupId] = useState<number | null>(null);
+  const [scrapeMsg, setScrapeMsg] = useState<string | null>(null);
 
   // "Add Group" dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -79,6 +82,11 @@ export default function TargetGroups() {
   const [newName, setNewName] = useState('');
   const [newKeywords, setNewKeywords] = useState('');
   const [adding, setAdding] = useState(false);
+
+  // Session upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [sessionStatus, setSessionStatus] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   // Posts state
   const [posts, setPosts] = useState<ScrapedPost[]>([]);
@@ -160,6 +168,50 @@ export default function TargetGroups() {
     }
   };
 
+  // -------- Scrape Now --------
+  const handleScrapeNow = async (group: TargetGroup) => {
+    setScrapingGroupId(group.id);
+    setScrapeMsg(null);
+    try {
+      const res = await fetch(`${API}/${group.id}/scrape`, {
+        method: 'POST',
+        headers,
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setScrapeMsg(`✓ Scrape dispatched for "${group.name || group.url}". Check the Posts tab in ~10-30s.`);
+      } else {
+        setScrapeMsg(`✗ ${json.detail || 'Error dispatching scrape'}`);
+      }
+    } catch (e) {
+      setScrapeMsg('✗ Network error');
+    } finally {
+      setScrapingGroupId(null);
+      setTimeout(() => setScrapeMsg(null), 8000);
+    }
+  };
+
+  // -------- Upload FB Session --------
+  const handleSessionUpload = async (file: File) => {
+    setUploading(true);
+    setSessionStatus(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${API}/session`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const json = await res.json();
+      setSessionStatus(res.ok ? `✓ ${json.message}` : `✗ ${json.detail}`);
+    } catch (e) {
+      setSessionStatus('✗ Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // -------- Approve / Reject Post --------
   const handlePostStatus = async (id: number, status: PostStatus) => {
     try {
@@ -169,7 +221,6 @@ export default function TargetGroups() {
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
-        // Optimistic update
         setPosts((prev) =>
           prev.map((p) => (p.id === id ? { ...p, status } : p))
         );
@@ -222,133 +273,209 @@ export default function TargetGroups() {
 
       {/* === GROUPS TAB === */}
       {activeTab === 'groups' && (
-        <Card className="bg-background/50 border-border">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <CardTitle className="text-lg">Target Groups</CardTitle>
-                <CardDescription>
-                  {groups.length === 0
-                    ? 'No target groups configured'
-                    : `${groups.length} group(s) configured`}
-                </CardDescription>
+        <div className="space-y-4">
+          {/* Facebook Session Upload Card */}
+          <Card className="bg-background/50 border-border border-dashed">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <Upload className="w-4 h-4 text-primary" />
+                    Upload Facebook Session Cookies
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Required to bypass the Facebook login wall. Export from{' '}
+                    <strong>Cookie-Editor</strong> extension while logged into facebook.com
+                    (Export All → JSON), then upload here.
+                  </p>
+                  {sessionStatus && (
+                    <p className={`text-xs mt-1 ${sessionStatus.startsWith('✓') ? 'text-green-500' : 'text-destructive'}`}>
+                      {sessionStatus}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json,application/json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleSessionUpload(f);
+                      e.target.value = '';
+                    }}
+                  />
+                  <Button
+                    id="upload-session-btn"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="gap-2 whitespace-nowrap"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {uploading ? 'Uploading...' : 'Upload cookies.json'}
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  id="refresh-groups-btn"
-                  variant="outline"
-                  size="sm"
-                  onClick={fetchGroups}
-                  disabled={groupsLoading}
-                  className="gap-2"
-                >
-                  <RefreshCw className={`w-4 h-4 ${groupsLoading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
-                <Button
-                  id="add-group-btn"
-                  size="sm"
-                  onClick={() => setDialogOpen(true)}
-                  className="gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Group
-                </Button>
-              </div>
+            </CardContent>
+          </Card>
+
+          {/* Scrape feedback banner */}
+          {scrapeMsg && (
+            <div className={`flex items-center gap-2 text-sm rounded-md px-4 py-2 border ${
+              scrapeMsg.startsWith('✓')
+                ? 'bg-green-500/10 border-green-500/30 text-green-500'
+                : 'bg-destructive/10 border-destructive/30 text-destructive'
+            }`}>
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {scrapeMsg}
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border border-border">
-              <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Group URL</TableHead>
-                    <TableHead>Keywords</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Added</TableHead>
-                    <TableHead className="w-16" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {groups.length === 0 ? (
+          )}
+
+          <Card className="bg-background/50 border-border">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <CardTitle className="text-lg">Target Groups</CardTitle>
+                  <CardDescription>
+                    {groups.length === 0
+                      ? 'No target groups configured'
+                      : `${groups.length} group(s) configured`}
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    id="refresh-groups-btn"
+                    variant="outline"
+                    size="sm"
+                    onClick={fetchGroups}
+                    disabled={groupsLoading}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${groupsLoading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
+                  <Button
+                    id="add-group-btn"
+                    size="sm"
+                    onClick={() => setDialogOpen(true)}
+                    className="gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Group
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border border-border">
+                <Table>
+                  <TableHeader className="bg-muted/50">
                     <TableRow>
-                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                        {groupsLoading ? (
-                          'Loading...'
-                        ) : (
-                          <div className="space-y-1">
-                            <p className="font-medium">No target groups configured</p>
-                            <p className="text-sm">
-                              Add a Facebook group URL and target keywords to begin scraping.
-                            </p>
-                          </div>
-                        )}
-                      </TableCell>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Group URL</TableHead>
+                      <TableHead>Keywords</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Added</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ) : (
-                    groups.map((g) => (
-                      <TableRow key={g.id} className="hover:bg-muted/30">
-                        <TableCell className="font-medium">{g.name || '—'}</TableCell>
-                        <TableCell className="max-w-xs">
-                          <a
-                            href={g.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-primary underline underline-offset-2 truncate block"
-                            title={g.url}
-                          >
-                            {g.url}
-                          </a>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {g.keywords.length === 0 ? (
-                              <span className="text-muted-foreground text-xs">All posts</span>
-                            ) : (
-                              g.keywords.map((kw) => (
-                                <span
-                                  key={kw}
-                                  className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded"
-                                >
-                                  {kw}
-                                </span>
-                              ))
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span
-                            className={`text-xs rounded-full px-2 py-1 ${
-                              g.is_active
-                                ? 'bg-green-500/10 text-green-500'
-                                : 'bg-muted text-muted-foreground'
-                            }`}
-                          >
-                            {g.is_active ? 'Active' : 'Inactive'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                          {g.created_at ? new Date(g.created_at).toLocaleDateString() : '—'}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteGroup(g.id)}
-                            className="text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
+                  </TableHeader>
+                  <TableBody>
+                    {groups.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                          {groupsLoading ? (
+                            'Loading...'
+                          ) : (
+                            <div className="space-y-1">
+                              <p className="font-medium">No target groups configured</p>
+                              <p className="text-sm">
+                                Add a Facebook group URL and target keywords to begin scraping.
+                              </p>
+                            </div>
+                          )}
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                    ) : (
+                      groups.map((g) => (
+                        <TableRow key={g.id} className="hover:bg-muted/30">
+                          <TableCell className="font-medium">{g.name || '—'}</TableCell>
+                          <TableCell className="max-w-xs">
+                            <a
+                              href={g.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary underline underline-offset-2 truncate block"
+                              title={g.url}
+                            >
+                              {g.url}
+                            </a>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {g.keywords.length === 0 ? (
+                                <span className="text-muted-foreground text-xs">All posts</span>
+                              ) : (
+                                g.keywords.map((kw) => (
+                                  <span
+                                    key={kw}
+                                    className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded"
+                                  >
+                                    {kw}
+                                  </span>
+                                ))
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={`text-xs rounded-full px-2 py-1 ${
+                                g.is_active
+                                  ? 'bg-green-500/10 text-green-500'
+                                  : 'bg-muted text-muted-foreground'
+                              }`}
+                            >
+                              {g.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                            {g.created_at ? new Date(g.created_at).toLocaleDateString() : '—'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                id={`scrape-group-${g.id}`}
+                                variant="outline"
+                                size="sm"
+                                disabled={scrapingGroupId === g.id}
+                                onClick={() => handleScrapeNow(g)}
+                                className="gap-1 text-primary border-primary/30 hover:bg-primary/10"
+                                title="Scrape this group now"
+                              >
+                                <Play className={`w-3.5 h-3.5 ${scrapingGroupId === g.id ? 'animate-pulse' : ''}`} />
+                                {scrapingGroupId === g.id ? 'Scraping...' : 'Scrape Now'}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteGroup(g.id)}
+                                className="text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* === POSTS TAB === */}
@@ -412,7 +539,7 @@ export default function TargetGroups() {
                           <div className="space-y-1">
                             <p className="font-medium">No pending posts</p>
                             <p className="text-sm">
-                              Configure a target group to begin scraping, or check Approved/Rejected.
+                              Go to Configured Groups → upload Facebook cookies → click "Scrape Now".
                             </p>
                           </div>
                         ) : (

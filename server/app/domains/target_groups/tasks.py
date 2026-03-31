@@ -7,12 +7,21 @@ Task flow:
     → if elapsed, updates next_run_time and spawns scrape_facebook_group for each active group
 
   scrape_facebook_group (runs per active TargetGroup)
-    → uses Playwright to fetch the Facebook group's page
-    → extracts posts (URL, content snippet, author, comment/reaction counts)
+    → uses Playwright + FB session cookies to fetch the Facebook group page
+    → extracts posts (URL, content snippet, author)
     → skips posts whose original_url already exists in DB (prevents duplicates)
+
+Session setup:
+  Upload FB cookies via POST /api/v1/target-groups/session
+  Supported formats:
+    1. Playwright storage_state JSON: {"cookies": [...], "origins": [...]}
+    2. Cookie-Editor browser extension export: [{"name": ..., "value": ..., ...}]
 """
+import json
 import logging
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Optional
 
 from celery import shared_task
 from sqlmodel import Session, select
@@ -54,7 +63,7 @@ def facebook_scheduler_tick() -> dict:
             logger.info(f"[FBScheduler] Not due yet. Next run in ~{remaining} min.")
             return {"status": "skipped", "next_run_in_minutes": remaining}
 
-        # Update next_run_time BEFORE spawning — prevents double-dispatch
+        # Update next_run_time BEFORE spawning tasks — prevents double-dispatch
         config.next_run_time = now + timedelta(hours=config.frequency_hours)
         session.add(config)
         session.commit()
@@ -89,8 +98,8 @@ def facebook_scheduler_tick() -> dict:
 )
 def scrape_facebook_group(self, group_id: int) -> dict:
     """
-    Scrape posts for a single TargetGroup using Playwright.
-    Skips posts whose original_url already exists in DB (dedup logic).
+    Scrape posts for a single TargetGroup using Playwright + FB session.
+    Skips posts whose original_url already exists in DB.
     """
     with Session(engine) as session:
         group = session.get(TargetGroup, group_id)
@@ -152,14 +161,64 @@ def scrape_facebook_group(self, group_id: int) -> dict:
         }
 
 
+def _load_fb_storage_state() -> Optional[dict]:
+    """
+    Load Facebook session from FB_SESSION_FILE.
+    Supports two formats:
+      1. Playwright storage_state:  {"cookies": [...], "origins": [...]}
+      2. Cookie-Editor export:      [{"name":...,"value":...,"domain":...}]
+    Returns None if file not found or invalid.
+    """
+    from app.core.config import settings
+
+    session_file = Path(settings.FB_SESSION_FILE)
+    if not session_file.exists():
+        logger.warning(
+            f"[FBScraper] No FB session file at '{session_file}'. "
+            "Facebook will likely show a login wall. "
+            "Upload session via: POST /api/v1/target-groups/session"
+        )
+        return None
+
+    try:
+        raw = json.loads(session_file.read_text(encoding="utf-8"))
+    except Exception as e:
+        logger.error(f"[FBScraper] Failed reading session file {session_file}: {e}")
+        return None
+
+    # Playwright storage_state format
+    if isinstance(raw, dict) and "cookies" in raw:
+        logger.info(f"[FBScraper] Loaded Playwright session ({len(raw['cookies'])} cookies)")
+        return raw
+
+    # Cookie-Editor flat array format — convert to storage_state
+    if isinstance(raw, list):
+        cookies = []
+        for c in raw:
+            cookie: dict = {
+                "name": c.get("name", ""),
+                "value": c.get("value", ""),
+                "domain": c.get("domain", ".facebook.com"),
+                "path": c.get("path", "/"),
+                "secure": c.get("secure", True),
+                "httpOnly": c.get("httpOnly", False),
+                "sameSite": c.get("sameSite", "None"),
+            }
+            if "expirationDate" in c:
+                cookie["expires"] = int(c["expirationDate"])
+            cookies.append(cookie)
+        logger.info(f"[FBScraper] Converted Cookie-Editor session ({len(cookies)} cookies)")
+        return {"cookies": cookies, "origins": []}
+
+    logger.error(f"[FBScraper] Unrecognised session file format in {session_file}")
+    return None
+
+
 def _scrape_group_posts(group_url: str, keywords: list) -> list:
     """
     Uses Playwright to scrape posts from a Facebook group page.
+    Loads FB session cookies to bypass the login wall.
     Returns list of dicts: {original_url, content, author, comments_count, reactions_count}
-
-    NOTE: This is a best-effort scraper. Facebook's DOM changes frequently.
-    The implementation uses structural selectors and falls back gracefully.
-    A logged-in session (cookies/storage_state) may be required for private groups.
     """
     try:
         from playwright.sync_api import sync_playwright
@@ -167,50 +226,86 @@ def _scrape_group_posts(group_url: str, keywords: list) -> list:
         logger.warning("[FBScraper] Playwright not installed. Returning empty results.")
         return []
 
+    storage_state = _load_fb_storage_state()
+
     posts = []
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        context = browser.new_context(
-            user_agent=(
+
+        context_kwargs: dict = {
+            "user_agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/120.0.0.0 Safari/537.36"
-            )
-        )
+            ),
+            "viewport": {"width": 1280, "height": 800},
+        }
+        if storage_state:
+            context_kwargs["storage_state"] = storage_state
+
+        context = browser.new_context(**context_kwargs)
         page = context.new_page()
 
         try:
             page.goto(group_url, timeout=30000, wait_until="domcontentloaded")
-            page.wait_for_timeout(3000)
+            page.wait_for_timeout(4000)
+
+            # Detect login wall
+            current_url = page.url
+            if "login" in current_url or "checkpoint" in current_url:
+                logger.error(
+                    f"[FBScraper] Facebook login wall at {current_url}. "
+                    "Session missing or expired. "
+                    "Upload fresh cookies via POST /api/v1/target-groups/session"
+                )
+                return []
+
+            # Scroll down to load more posts
+            for _ in range(3):
+                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                page.wait_for_timeout(2000)
 
             # Facebook uses role="article" for posts in group feeds
             post_elements = page.query_selector_all('[role="article"]')
-            for el in post_elements[:20]:  # Limit to first 20 posts per run
+            logger.info(f"[FBScraper] Found {len(post_elements)} article elements on {group_url}")
+
+            for el in post_elements[:20]:
                 try:
-                    # Look for permalink or post URL
+                    # Permalink or post URL
                     link_el = el.query_selector('a[href*="/permalink/"], a[href*="/posts/"]')
                     post_url = link_el.get_attribute("href") if link_el else ""
                     if not post_url:
                         continue
 
-                    # Normalize URL — strip tracking params
-                    post_url = post_url.split("?")[0]
+                    post_url = post_url.split("?")[0]  # strip tracking params
 
-                    # Extract content text
-                    content_el = el.query_selector('[data-ad-comet-preview="message"], [dir="auto"]')
-                    content = content_el.inner_text()[:500] if content_el else ""
+                    # Content — try multiple selectors
+                    content = ""
+                    for sel in [
+                        '[data-ad-comet-preview="message"]',
+                        '[data-ad-preview="message"]',
+                        'div[dir="auto"]',
+                    ]:
+                        content_el = el.query_selector(sel)
+                        if content_el:
+                            content = (content_el.inner_text() or "")[:500]
+                            break
 
-                    # Extract author name
-                    author_el = el.query_selector('a[role="link"] span')
-                    author = author_el.inner_text() if author_el else "Unknown"
+                    # Author name — prefer strong/bold span
+                    author = "Unknown"
+                    for sel in ['a[role="link"] span strong', 'a[role="link"] span', 'h3 a span']:
+                        author_el = el.query_selector(sel)
+                        if author_el:
+                            text = (author_el.inner_text() or "").strip()
+                            if text:
+                                author = text
+                                break
 
-                    # Keyword filtering — only include matching posts
+                    # Keyword filter
                     keywords_lower = [k.lower() for k in (keywords or [])]
-                    content_lower = content.lower()
-                    if keywords_lower and not any(kw in content_lower for kw in keywords_lower):
+                    if keywords_lower and not any(kw in content.lower() for kw in keywords_lower):
                         continue
 
-                    # Build absolute URL
                     full_url = (
                         f"https://www.facebook.com{post_url}"
                         if post_url.startswith("/") else post_url
@@ -226,6 +321,8 @@ def _scrape_group_posts(group_url: str, keywords: list) -> list:
                 except Exception as e:
                     logger.debug(f"[FBScraper] Error parsing post element: {e}")
                     continue
+
+            logger.info(f"[FBScraper] Extracted {len(posts)} matching posts from {group_url}")
 
         except Exception as e:
             logger.error(f"[FBScraper] Error fetching group page: {e}")

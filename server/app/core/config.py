@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     DISCORD_BOT_TOKEN: str = "mock_discord_token"
     DISCORD_CHANNEL_ID: str = "user_channel_id"
 
+    # Facebook session — Playwright storage_state JSON with logged-in FB cookies.
+    # Export: in Python, after logging in manually with Playwright, call:
+    #   context.storage_state(path="fb_session.json")
+    # Or use Cookie-Editor extension to export cookies from a logged-in Facebook tab.
+    FB_SESSION_FILE: str = "fb_session.json"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="allow")
 
 

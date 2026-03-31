@@ -145,3 +145,89 @@ def update_post_status(
         status=post.status,
         created_at=post.created_at,
     )
+
+
+# ---------- Session upload ----------
+
+
+from fastapi import UploadFile, File
+from pydantic import BaseModel
+import json as _json
+
+
+class SessionUploadResponse(BaseModel):
+    saved_to: str
+    message: str
+
+
+@router.post("/session", response_model=SessionUploadResponse)
+async def upload_fb_session(
+    file: UploadFile = File(...),
+    _admin: dict = Depends(get_current_admin),
+) -> SessionUploadResponse:
+    """
+    Upload Facebook session cookies to enable Playwright scraping.
+
+    Accepted formats:
+    - **Cookie-Editor JSON** (flat array): Export All → JSON from the Cookie-Editor browser extension
+      while logged into facebook.com
+    - **Playwright storage_state JSON**: {"cookies": [...], "origins": [...]}
+
+    After upload, use the 'Scrape Now' button or wait for the scheduler to run.
+    """
+    from pathlib import Path
+    from app.core.config import settings
+
+    content = await file.read()
+    try:
+        parsed = _json.loads(content)
+        if not isinstance(parsed, (dict, list)):
+            raise ValueError("Session file must be a JSON object or array")
+    except (ValueError, _json.JSONDecodeError) as e:
+        raise HTTPException(status_code=422, detail=f"Invalid JSON: {e}")
+
+    state_path = Path(settings.FB_SESSION_FILE)
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    state_path.write_bytes(content)
+
+    count = len(parsed) if isinstance(parsed, list) else len(parsed.get("cookies", []))
+    return SessionUploadResponse(
+        saved_to=str(state_path.resolve()),
+        message=f"Session saved ({count} cookies). You can now run 'Scrape Now' on a group.",
+    )
+
+
+# ---------- Manual scrape trigger ----------
+
+
+from pydantic import BaseModel as _BaseModel
+
+
+class ScrapeResponse(_BaseModel):
+    task_id: str
+    message: str
+
+
+@router.post("/{group_id}/scrape", response_model=ScrapeResponse)
+def trigger_group_scrape(
+    group_id: int,
+    session: Session = Depends(get_session),
+    _admin: dict = Depends(get_current_admin),
+) -> ScrapeResponse:
+    """
+    Manually trigger a scrape for a specific target group.
+    Dispatches the Celery scrape_facebook_group task immediately.
+    """
+    from app.domains.target_groups.tasks import scrape_facebook_group
+
+    group = session.get(TargetGroup, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail=f"Group {group_id} not found")
+    if not group.is_active:
+        raise HTTPException(status_code=400, detail="Group is inactive")
+
+    task = scrape_facebook_group.delay(group_id)
+    return ScrapeResponse(
+        task_id=task.id,
+        message=f"Scrape task dispatched for group '{group.name or group.url}'. Check posts tab in a few seconds.",
+    )
