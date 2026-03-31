@@ -14,6 +14,8 @@ from app.domains.content_sourcing.router import router as sourcing_router
 from app.domains.approval.router import router as approval_router
 from app.domains.campaign.router import router as campaign_router
 from app.domains.devices.router import router as devices_router
+from app.domains.target_groups import models as _target_groups_models  # noqa: F401 — registers TargetGroup, TargetGroupConfig, ScrapedPost
+from app.domains.target_groups.router import router as target_groups_router
 from app.domains.notify.bot import bot, DISCORD_BOT_TOKEN
 from app.core.database import create_db_and_tables
 import asyncio
@@ -64,6 +66,7 @@ app.include_router(sourcing_router, prefix="/api/v1")
 app.include_router(approval_router, prefix="/api/v1")
 app.include_router(campaign_router, prefix="/api/v1")
 app.include_router(devices_router, prefix="/api/v1")
+app.include_router(target_groups_router, prefix="/api/v1")
 
 
 @app.get("/api/v1/health", tags=["system"])
