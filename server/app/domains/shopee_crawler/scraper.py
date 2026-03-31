@@ -114,8 +114,6 @@ def scrape_keyword(
             args=[
                 "--no-sandbox",
                 "--disable-blink-features=AutomationControlled",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
             ],
         )
         pw_cookies = _load_playwright_cookies(state_path)
@@ -129,23 +127,15 @@ def scrape_keyword(
             ),
             viewport={"width": 1366, "height": 768},
             locale="vi-VN",
-            extra_http_headers={
-                "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-            },
         )
         context.add_cookies(pw_cookies)
-
-        # Mask automation fingerprint
-        context.add_init_script(
-            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
-        )
 
         page = context.new_page()
 
         try:
             url = f"https://shopee.vn/search?keyword={keyword}&sortBy=sales"
             logger.info(f"[Scraper] Navigating: {url}")
-            page.goto(url, wait_until="domcontentloaded", timeout=45000)
+            page.goto(url, wait_until="networkidle", timeout=45000)
 
             # Allow JS to render product grid
             page.wait_for_timeout(3000)
@@ -157,6 +147,7 @@ def scrape_keyword(
 
             # Shopee product card selectors (try multiple — UI changes over time)
             selectors = [
+                "a[href*='-i.']", # New Tailwind UI wraps card directly in anchor
                 "li.shopee-search-item-result__item",
                 "[data-sqe='item']",
                 ".shopee-item-card-overlay",
@@ -175,8 +166,13 @@ def scrape_keyword(
             for item in items[:max_items]:
                 try:
                     # --- Product URL ---
-                    link_el = item.query_selector("a[href]")
-                    href = link_el.get_attribute("href") if link_el else None
+                    is_anchor = item.evaluate("el => el.tagName.toLowerCase() === 'a'")
+                    if is_anchor:
+                        href = item.get_attribute("href")
+                    else:
+                        link_el = item.query_selector("a[href]")
+                        href = link_el.get_attribute("href") if link_el else None
+                        
                     if not href:
                         continue
                     if not href.startswith("http"):
@@ -184,10 +180,12 @@ def scrape_keyword(
                     # Remove query params to get clean canonical URL
                     href = href.split("?")[0]
 
+
                     # --- Title ---
                     title_selectors = [
-                        "[data-sqe='name'] span",
+                        "img[alt]", # New tailwind UI
                         ".line-clamp-2",
+                        "[data-sqe='name'] span",
                         ".shopee-item-card__text-name",
                         "[class*='name'] span",
                     ]
@@ -195,8 +193,12 @@ def scrape_keyword(
                     for tsel in title_selectors:
                         el = item.query_selector(tsel)
                         if el:
-                            title = el.inner_text().strip()
-                            break
+                            if tsel == "img[alt]":
+                                title = el.get_attribute("alt").strip()
+                            else:
+                                title = el.inner_text().strip()
+                            if title:
+                                break
 
                     # --- Price ---
                     # Shopee uses hashed class names that change with deployments.
