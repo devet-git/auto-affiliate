@@ -20,6 +20,7 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="Asia/Ho_Chi_Minh",
     enable_utc=True,
+    task_default_queue="default",
     task_routes={
         "app.domains.sys_worker.tasks.*": {"queue": "default"},
         "app.domains.sys_worker.seeding_tasks.exec_fb_comment": {"queue": "appium_phone"},
