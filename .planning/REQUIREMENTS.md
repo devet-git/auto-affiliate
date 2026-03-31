@@ -13,9 +13,9 @@
 - [ ] **PROD-02**: Thiết lập job cron (background) tự động quét danh mục hoặc keyword trên Shopee để cào sản phẩm mới đổ vào DB.
 
 ## [TARGETS] Quản lý Post & Group Seeding
-- [ ] **TARG-01**: Màn hình quản lý danh sách Facebook Groups mục tiêu (Tên Group, URL, UID).
-- [ ] **TARG-02**: Màn hình xem danh sách các bài viết nhạy/tương tác cao (Scraped Posts) cào được từ các Groups dựa vào keyword liên quan đến sản phẩm hiện có.
-- [ ] **TARG-03**: Celery scraper chạy ngầm, dựa trên danh sách Target Groups và keywords để tìm bài viết thả mồi và lưu vào cơ sở dữ liệu.
+- [x] **TARG-01**: Màn hình quản lý danh sách Facebook Groups mục tiêu (Tên Group, URL, UID).
+- [x] **TARG-02**: Màn hình xem danh sách các bài viết nhạy/tương tác cao (Scraped Posts) cào được từ các Groups dựa vào keyword liên quan đến sản phẩm hiện có.
+- [x] **TARG-03**: Celery scraper chạy ngầm, dựa trên danh sách Target Groups và keywords để tìm bài viết thả mồi và lưu vào cơ sở dữ liệu.
 
 ## [LOGS] Tracking & Lịch sử
 - [ ] **LOG-01**: Bổ sung bảng `TaskLog` lưu trữ các hoạt động chạy của Celery, Crawler, Playwright và Appium.
