@@ -13,6 +13,7 @@ Endpoints:
 """
 
 import uuid
+import subprocess
 from datetime import datetime
 from typing import List, Optional
 
@@ -41,7 +42,7 @@ class DeviceUpdate(BaseModel):
     label: Optional[str] = None
     udid: Optional[str] = None
     notes: Optional[str] = None
-
+    is_active: Optional[bool] = None
 
 class DeviceStatusUpdate(BaseModel):
     status: str  # online | offline | busy
@@ -59,23 +60,46 @@ def list_devices(
     return session.exec(select(Device)).all()
 
 
-@router.post("", response_model=Device)
-def create_device(
-    payload: DeviceCreate,
+@router.post("/scan", response_model=List[Device])
+def scan_devices_now(
     session: Session = Depends(get_session),
     _admin=Depends(get_current_admin),
 ):
-    """Đăng ký thiết bị Android mới vào hệ thống."""
-    device = Device(
-        label=payload.label,
-        udid=payload.udid,
-        status=payload.status,
-        notes=payload.notes,
-    )
-    session.add(device)
-    session.commit()
-    session.refresh(device)
-    return device
+    """Quét ADB ngay lập tức để nạp các thiết bị đang kết nối vào CSDL."""
+    active_udids = set()
+    try:
+        result = subprocess.run(
+            ["adb", "devices"], 
+            capture_output=True, 
+            text=True, 
+            timeout=10
+        )
+        lines = result.stdout.strip().split("\n")[1:] # skip header
+        for line in lines:
+            if "\tdevice" in line:
+                active_udids.add(line.split("\t")[0])
+    except Exception as e:
+        print(f"Error checking adb devices: {e}")
+
+    devices = session.exec(select(Device)).all()
+    known_udids = {d.udid: d for d in devices}
+    
+    # Auto-add new devices detected from ADB
+    for adb_udid in active_udids:
+        if adb_udid not in known_udids:
+            new_device = Device(
+                udid=adb_udid,
+                label=adb_udid,
+                status="online",
+                is_active=True
+            )
+            session.add(new_device)
+            session.commit()
+            session.refresh(new_device)
+            known_udids[adb_udid] = new_device
+            devices.append(new_device)
+            
+    return devices
 
 
 @router.get("/{device_id}", response_model=Device)
@@ -109,6 +133,8 @@ def update_device(
         device.udid = payload.udid
     if payload.notes is not None:
         device.notes = payload.notes
+    if payload.is_active is not None:
+        device.is_active = payload.is_active
     device.updated_at = datetime.utcnow()
 
     session.add(device)
@@ -144,16 +170,22 @@ def update_device_status(
     return device
 
 
-@router.delete("/{device_id}")
-def delete_device(
+@router.post("/{device_id}/reset", response_model=Device)
+def reset_device_pings(
     device_id: str,
     session: Session = Depends(get_session),
     _admin=Depends(get_current_admin),
 ):
-    """Xóa thiết bị khỏi hệ thống."""
+    """Reset missed_pings về 0 và trạng thái về 'online'."""
     device = session.get(Device, uuid.UUID(device_id))
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
-    session.delete(device)
+
+    device.missed_pings = 0
+    device.status = "online"
+    device.updated_at = datetime.utcnow()
+    
+    session.add(device)
     session.commit()
-    return {"message": "Deleted"}
+    session.refresh(device)
+    return device

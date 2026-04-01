@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
-import { Plus, Trash2, Pencil, Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { Pencil, Wifi, WifiOff, Loader2, RefreshCcw } from 'lucide-react';
 
 interface Device {
   id: string;
@@ -16,6 +16,7 @@ interface Device {
   udid: string;
   status: string;
   notes: string | null;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -40,12 +41,13 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-const EMPTY_FORM = { label: '', udid: '', notes: '' };
+const EMPTY_FORM = { label: '', notes: '' };
 
 export default function Devices() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [error, setError] = useState('');
 
   const [isOpen, setIsOpen] = useState(false);
@@ -66,53 +68,40 @@ export default function Devices() {
     }
   };
 
-  const openCreate = () => {
-    setEditingDevice(null);
-    setForm(EMPTY_FORM);
-    setIsOpen(true);
+  const scanDevices = async () => {
+    setScanning(true);
+    try {
+      const { data } = await api.post('/devices/scan');
+      setDevices(data);
+    } catch {
+      setError('Quét thiết bị thất bại.');
+    } finally {
+      setScanning(false);
+    }
   };
 
   const openEdit = (device: Device) => {
     setEditingDevice(device);
-    setForm({ label: device.label, udid: device.udid, notes: device.notes ?? '' });
+    setForm({ label: device.label, notes: device.notes ?? '' });
     setIsOpen(true);
   };
 
   const handleSave = async () => {
-    if (!form.label.trim() || !form.udid.trim()) return;
+    if (!form.label.trim()) return;
     setSaving(true);
     try {
       if (editingDevice) {
         const { data } = await api.put(`/devices/${editingDevice.id}`, {
           label: form.label,
-          udid: form.udid,
           notes: form.notes || null,
         });
         setDevices(devices.map((d) => (d.id === editingDevice.id ? data : d)));
-      } else {
-        const { data } = await api.post('/devices', {
-          label: form.label,
-          udid: form.udid,
-          notes: form.notes || null,
-          status: 'offline',
-        });
-        setDevices([...devices, data]);
       }
       setIsOpen(false);
     } catch {
       setError('Lưu thất bại. Kiểm tra lại thông tin.');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Xóa thiết bị này?')) return;
-    try {
-      await api.delete(`/devices/${id}`);
-      setDevices(devices.filter((d) => d.id !== id));
-    } catch {
-      setError('Xóa thất bại.');
     }
   };
 
@@ -126,6 +115,15 @@ export default function Devices() {
     }
   };
 
+  const toggleActive = async (device: Device) => {
+    try {
+      const { data } = await api.put(`/devices/${device.id}`, { is_active: !device.is_active });
+      setDevices(devices.map((d) => (d.id === device.id ? data : d)));
+    } catch {
+      setError('Cập nhật cho phép chạy thất bại.');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -136,12 +134,16 @@ export default function Devices() {
             Quản lý điện thoại Android kết nối qua ADB + Appium.
           </p>
         </div>
-        <Button
-          onClick={openCreate}
-          className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-        >
-          <Plus className="w-4 h-4" /> Thêm Thiết Bị
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={scanDevices}
+            disabled={scanning}
+            variant="outline"
+            className="border-zinc-700 hover:bg-zinc-800 text-zinc-300 gap-2"
+          >
+            <RefreshCcw className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} /> Tự Động Quét
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -170,21 +172,22 @@ export default function Devices() {
               <TableHead>Tên Thiết Bị</TableHead>
               <TableHead>UDID</TableHead>
               <TableHead>Ghi Chú</TableHead>
-              <TableHead>Trạng Thái</TableHead>
+              <TableHead>Kết Nối</TableHead>
+              <TableHead>Cho Phép Chạy</TableHead>
               <TableHead className="text-right">Hành Động</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-zinc-500">
+                <TableCell colSpan={6} className="text-center py-12 text-zinc-500">
                   <Loader2 className="w-5 h-5 animate-spin inline mr-2" />Đang tải...
                 </TableCell>
               </TableRow>
             ) : devices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-12 text-zinc-500">
-                  Chưa có thiết bị nào. Thêm điện thoại Android để bắt đầu.
+                <TableCell colSpan={6} className="text-center py-12 text-zinc-500">
+                  Chưa có thiết bị nào. Cắm điện thoại vào máy tính và nhấn "Tự Động Quét".
                 </TableCell>
               </TableRow>
             ) : (
@@ -202,10 +205,18 @@ export default function Devices() {
                   <TableCell>
                     <button
                       onClick={() => toggleStatus(device)}
-                      title="Click để toggle online/offline"
+                      title="Click để toggle online/offline giả lập"
                       className="focus:outline-none"
                     >
                       <StatusBadge status={device.status} />
+                    </button>
+                  </TableCell>
+                  <TableCell>
+                    <button
+                      onClick={() => toggleActive(device)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border ${device.is_active ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 'bg-zinc-800 text-zinc-500 border-zinc-700 hover:bg-zinc-700'}`}
+                    >
+                      {device.is_active ? 'Đang Bật' : 'Tạm Dừng'}
                     </button>
                   </TableCell>
                   <TableCell className="text-right space-x-2">
@@ -217,14 +228,6 @@ export default function Devices() {
                     >
                       <Pencil className="w-4 h-4 text-zinc-400" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(device.id)}
-                      title="Xóa thiết bị"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-400" />
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -233,11 +236,11 @@ export default function Devices() {
         </Table>
       </div>
 
-      {/* Create / Edit Dialog */}
+      {/* Edit Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-50 max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingDevice ? 'Sửa Thiết Bị' : 'Thêm Thiết Bị Mới'}</DialogTitle>
+            <DialogTitle>Sửa Thông Tin Thiết Bị</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -250,16 +253,12 @@ export default function Devices() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-zinc-300">UDID (ADB) *</label>
+              <label className="text-sm text-zinc-300">UDID (ADB)</label>
               <Input
-                value={form.udid}
-                onChange={(e) => setForm({ ...form, udid: e.target.value })}
-                placeholder="VD: R3CT903WXYZ (lấy từ `adb devices`)"
-                className="bg-zinc-950 border-zinc-700 font-mono text-sm"
+                value={editingDevice?.udid || ''}
+                disabled
+                className="bg-zinc-900/50 border-zinc-800 font-mono text-sm text-zinc-500 cursor-not-allowed"
               />
-              <p className="text-xs text-zinc-500">
-                Chạy <code className="bg-zinc-800 px-1 rounded">adb devices</code> để lấy UDID
-              </p>
             </div>
             <div className="space-y-2">
               <label className="text-sm text-zinc-300">Ghi chú (tùy chọn)</label>
@@ -277,11 +276,11 @@ export default function Devices() {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={saving || !form.label.trim() || !form.udid.trim()}
+              disabled={saving || !form.label.trim()}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editingDevice ? 'Lưu thay đổi' : 'Thêm thiết bị'}
+              Lưu thay đổi
             </Button>
           </DialogFooter>
         </DialogContent>

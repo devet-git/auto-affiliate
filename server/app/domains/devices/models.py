@@ -30,6 +30,14 @@ class Device(SQLModel, table=True):
         default="offline",
         description="online | offline | busy",
     )
+    missed_pings: int = Field(
+        default=0,
+        description="Consecutive missed pings check",
+    )
+    is_active: bool = Field(
+        default=True,
+        description="Có cho phép thiết bị thực hiện task hay không",
+    )
     notes: Optional[str] = Field(
         default=None,
         description="Ghi chú tuỳ chọn (FB account đang đăng nhập, SIM số, ...)",
