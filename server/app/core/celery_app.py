@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 
 from app.core.config import settings
 
@@ -11,6 +12,8 @@ celery_app = Celery(
         "app.domains.sys_worker.seeding_tasks",  # FB comment/reel via Appium
         "app.domains.shopee_crawler.tasks",      # Shopee product crawler
         "app.domains.target_groups.tasks",       # Facebook group scraper
+        "app.domains.devices.tasks",             # Monitor devices
+        "app.domains.sys_worker.alert_tasks",    # Error alerting and daily reporting
     ],
 )
 
@@ -41,6 +44,18 @@ celery_app.conf.update(
         "facebook_scheduler_tick": {
             "task": "app.domains.target_groups.tasks.facebook_scheduler_tick",
             "schedule": 900.0,  # Run every 15 minutes — checks TargetGroupConfig.next_run_time
+        },
+        "device_monitor_tick": {
+            "task": "app.domains.devices.tasks.ping_devices",
+            "schedule": 300.0,
+        },
+        "stuck_scraper_monitor_tick": {
+            "task": "app.domains.sys_worker.alert_tasks.check_stuck_scrapers",
+            "schedule": 900.0,
+        },
+        "daily_discord_report": {
+            "task": "app.domains.sys_worker.alert_tasks.send_daily_report_discord",
+            "schedule": crontab(hour=17, minute=0),
         },
     },
     # Windows fix: billiard spawn pool gây PermissionError trên Windows
