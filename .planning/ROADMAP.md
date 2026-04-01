@@ -1,57 +1,51 @@
-# Milestone v1.1 Roadmap
+# Roadmap: Auto Affiliate Control Center
 
-**Phases:** 6 mapped, 100% requirements covered.
+## Milestones
 
-| # | Phase | Goal | Requirements | Criteria |
-|---|-------|------|--------------|----------|
-| 6 | Tooling & Setup | 1/1 | Complete    | 2026-03-29 |
-| 7 | Design System UI | Triển khai Design Token mới qua StitchMCP cho Frontend Web App | UI-01, UI-02 | 2 |
-| 8 | Log Tracking | Thiết kế Logging & Màn hình hiển thị Lịch sử System | LOG-01, LOG-02 | 2 |
-| 9 | Product Management | Crawl sản phẩm Shopee background và Màn hình hiển thị danh sách SP | PROD-01, PROD-02 | 2 |
-| 10 | Target Groups Tracker | 1/1 | Complete    | 2026-03-31 |
-| 11 | Device Monitor & Alerts | Health-check Appium Devices, Discord Bot Report & Warning | Complete    | 2026-03-31 |
+- ✅ **v1.0 Foundation** — Phases 1-5 (Shipped 2026-03-28)
+- ✅ **v1.1 Tooling & Core Features** — Phases 6-11 (Shipped 2026-04-01) ⚠ Có Tech Debt (Bỏ qua Phase 09)
 
-### Phase Details
+## Phases
 
-### Phase 6: Tooling & Setup
-**Goal:** Gom gọn hạ tầng chạy, Setup script Start-all
-**Requirements:** TOOL-01
-**Success Criteria:**
-1. Có thể click vào một file `.bat` duy nhất để bật toàn bộ Backend, Queue, UI và Appium.
+<details>
+<summary>✅ v1.1 Tooling & Core Features (Phases 6-11) — SHIPPED 2026-04-01</summary>
 
-### Phase 7: Design System UI
-**Goal:** Triển khai Design Token mới qua StitchMCP cho Frontend Web App
-**Requirements:** UI-01, UI-02
-**Success Criteria:**
-1. StitchMCP áp dụng color palette và theme mới cho App.
-2. Các màn hình cũ (Dashboard, Approval) đổi sang giao diện mới chuẩn và thân thiện hơn.
+- [x] Phase 6: Tooling & Setup — completed 2026-03-29
+- [x] Phase 7: Design System UI — completed 2026-03-29
+- [x] Phase 8: Log Tracking — completed 2026-03-31
+- [ ] Phase 9: Product Management — BOMBED/SKIPPED (Tech Debt)
+- [x] Phase 10: Target Groups Tracker — completed 2026-03-31
+- [x] Phase 11: Device Monitor & Alerts — completed 2026-03-31
 
-### Phase 8: Log Tracking
-**Goal:** Thiết kế Logging & Màn hình hiển thị Lịch sử System
-**Requirements:** LOG-01, LOG-02
-**Success Criteria:**
-1. Mọi task chạy qua Celery sinh dòng log vào bảng.
-2. Admin xem được lịch sử và trace error log từ giao diện Dashboard.
+</details>
 
-### Phase 9: Product Management
-**Goal:** Crawl sản phẩm Shopee background và Màn hình hiển thị danh sách SP
-**Requirements:** PROD-01, PROD-02
-**Success Criteria:**
-1. Có màn hình trực quan dạng Grid/Table load ảnh và affiliate link của product.
-2. Sản phẩm mới tự popup vào DB mỗi ngày.
+<details>
+<summary>✅ v1.0 Foundation (Phases 1-5) — SHIPPED 2026-03-28</summary>
 
-### Phase 10: Target Groups Tracker
-**Goal:** Cấu trúc tự động cào bài viết nhạy theo Groups và UI quản lý mồi
-**Requirements:** TARG-01, TARG-02, TARG-03
-**Success Criteria:**
-1. Lên cấu hình danh sách nhóm đích.
-2. Có Celery job quét bài về.
-3. Có màn duyệt bài Scraped để chuẩn bị cho Auto-comment.
+- [x] Phase 1: Foundation Backend Queue — completed 2026-03-26
+- [x] Phase 2: Shopee Data Pipeline — completed 2026-03-27
+- [x] Phase 3: Content Sourcing & Social Seeding — completed 2026-03-27
+- [x] Phase 4: Real Device Social Farm — completed 2026-03-28
+- [x] Phase 5: Command Center UI & Bot — completed 2026-03-28
 
-### Phase 11: Device Monitor & Alerts
-**Goal:** Health-check Appium Devices, Discord Bot Report & Warning
-**Requirements:** DEV-01, DEV-02, NOTIF-01, NOTIF-02
-**Success Criteria:**
-1. Background task ping được appium.
-2. UI Devices báo đúng trạng thái thiết bị thực.
-3. Bot Discord báo động khi rớt Appium/ADB, thống kê log cuối ngày.
+</details>
+
+### 🚧 v1.2 Future Enhancements (In Progress / Planned)
+
+- [ ] *(Chưa lên kế hoạch - run /gsd-new-milestone để bắt đầu)*
+
+## Progress
+
+| Phase                     | Milestone | Plans Complete | Status      | Completed  |
+| ------------------------- | --------- | -------------- | ----------- | ---------- |
+| 1. Foundation             | v1.0      | 2/2            | Complete    | 2026-03-26 |
+| 2. Shopee Pipeline        | v1.0      | 2/2            | Complete    | 2026-03-27 |
+| 3. Content Sourcing       | v1.0      | 2/2            | Complete    | 2026-03-27 |
+| 4. Social Farm Appium     | v1.0      | 2/2            | Complete    | 2026-03-28 |
+| 5. Command Center UI      | v1.0      | 2/2            | Complete    | 2026-03-28 |
+| 6. Tooling & Setup        | v1.1      | 1/1            | Complete    | 2026-03-29 |
+| 7. Design System UI       | v1.1      | 3/3            | Complete    | 2026-03-29 |
+| 8. Log Tracking           | v1.1      | 2/2            | Complete    | 2026-03-31 |
+| 9. Product Management     | v1.1      | 0/3            | Skipped     | -          |
+| 10. Target Groups Tracker | v1.1      | 3/3            | Complete    | 2026-03-31 |
+| 11. Device Monitor Alerts | v1.1      | 3/3            | Complete    | 2026-03-31 |

@@ -8,20 +8,14 @@ Một nền tảng quản trị trung tâm (Command Center) dạng web applicati
 
 Khả năng vận hành tự động (hands-free) quy mô lớn với độ tin cậy cao, kết hợp linh hoạt giữa xử lý hàng loạt tốc độ cao và cơ chế kiểm duyệt chất lượng thủ công (Approval Queue) để bảo vệ tài sản mạng xã hội.
 
-## Current Milestone: v1.1 Trải nghiệm UI, Tooling & Mở rộng Crawler
+## Current Milestone: v1.2 Future Enhancements
 
-**Goal:** Hoàn thiện giao diện bằng hệ thống thiết kế mới qua StitchMCP, số hoá việc quản lý sản phẩm / nguồn seeding và xây dựng script đóng gói khởi chạy toàn cục.
+**Goal:** Chạy nốt nghiệp vụ Crawler Sản Phẩm (Tech Debt từ v1.1) và đóng gói trọn vẹn workflow tự động hoá seeding kiếm tiền.
 
 **Target features:**
-1. Quản lý danh mục Sản phẩm Shopee và URL tính năng tự động cào
-2. Dashboard Quản lý Status, Health-check của Thiết bị Appium/ADB
-3. One-click Start Script để khởi động toàn bộ Stack 
-4. Áp dụng Design System từ StitchMCP và làm mịn / tạo mới UI Screens.
-5. Màn hình Tracking Logs & Execution History.
-6. Màn hình Quản lý Target Facebook Groups và Scraped Posts theo keyword.
-7. Cập nhật Notibot: Discord Alerts nâng cao.
-
-Shifting focus of v1.1. Phase 6 (Tooling) complete — `start-all.bat`/`stop-all.bat` operational. Phase 7 (Design System UI) complete — applying StitchMCP tokens and Inter typography.
+1. Quản lý danh mục Sản phẩm Shopee và URL tính năng tự động cào.
+2. Nâng cấp các luồng phụ trợ.
+Shifting focus of v1.2. The v1.1 milestone "Tooling & Core Features" is complete (excluding Product Management crawler which is pushed to v1.2).
 
 ## Requirements
 
@@ -32,16 +26,16 @@ Shifting focus of v1.1. Phase 6 (Tooling) complete — `start-all.bat`/`stop-all
 - ✓ Content Sourcing & Auto Seeding (Shopee Scraper -> Affiliate Generator -> TikTok/Douyin Catcher -> FB Poster) — v1.0
 - ✓ Chiến lược Mạng xã hội Phân tầng (Multi-tier: Graph API, Playwright, Phone Appium Automation) — v1.0
 - ✓ Chat Bot Notifier (Đổi từ Telegram sang Discord.py tích hợp trong lifespan) — v1.0
-- ✓ [TOOL-01] One-click Start Script (`start-all.bat` / `stop-all.bat`) — Validated in Phase 6: Tooling & Setup
-- ✓ [UI-01] Design System từ StitchMCP và làm mịn / tạo mới UI Screens — Validated in Phase 07: Design System UI
+- ✓ [TOOL-01] One-click Start Script (`start-all.bat` / `stop-all.bat`) — v1.1
+- ✓ [UI-01] Design System từ StitchMCP và làm mịn / tạo mới UI Screens — v1.1
+- ✓ [LOG-01] Màn hình Tracking Logs & Execution History — v1.1
+- ✓ [TARG-01] Quản lý Target Facebook Groups và Scraped Posts — v1.1
+- ✓ [DEV-01] Dashboard Quản lý Health-check Thiết bị Appium/ADB — v1.1
+- ✓ [NOTIF-01] Discord Alerts nâng cao — v1.1
 
 ### Active
 
-- [DEV-01] Dashboard Quản lý Health-check Thiết bị Appium/ADB
-- [PROD-01] Quản lý Sản phẩm Shopee và Crawler URL
-- [TARG-01] Quản lý Target Facebook Groups và Scraped Posts
-- [LOG-01] Màn hình Tracking Logs & Execution History
-- [NOTIF-01] Discord Alerts nâng cao
+- [ ] [PROD-01] Quản lý Sản phẩm Shopee và Crawler URL (Tech Debt from v1.1)
 
 ### Out of Scope
 
@@ -53,7 +47,7 @@ Shifting focus of v1.1. Phase 6 (Tooling) complete — `start-all.bat`/`stop-all
 
 - **Workflow Đặc thù**: Yêu cầu thao tác rất nhiều với đa luồng (task queue), giả lập trình duyệt, xử lý media (mp4, mkv) và quản lý state phức tạp.
 - **Tính ổn định của Account**: Các nền tảng liên tục thay đổi thuật toán chống bot, do đó việc chia Tier (API & Playwright) là bắt buộc.
-- **Bối cảnh hiện tại**: v1.1 in progress. Phase 7 (Design System UI) complete.
+- **Bối cảnh hiện tại**: v1.1 đã hoàn tất (shipped 2026-04-01). Sẵn sàng bắt đầu v1.2 tập trung vào Product Management và Crawler nâng cao.
 
 ## Constraints
 
@@ -75,4 +69,4 @@ Shifting focus of v1.1. Phase 6 (Tooling) complete — `start-all.bat`/`stop-all
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-03-29 after Phase 07 (Design System UI) completion*
+*Last updated: 2026-04-01 after v1.1 milestone completion*
